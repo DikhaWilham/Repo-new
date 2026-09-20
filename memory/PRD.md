@@ -45,6 +45,7 @@
 - **P2**: Role Admin/Staff, riwayat perubahan keterangan (audit trail), pagination tabel, dark mode toggle, lampiran multi-file sekaligus di form tambah
 
 ## Next Tasks
+- Koreksi data manual: Wonderland Gentan diubah ke mulai 2026-08-04, akhir 2027-08-03, reminder 2027-06-04 (Sep 2026, permintaan pengguna; endpoint PUT terverifikasi normal).
 - Kumpulkan feedback pengguna setelah pemakaian awal
 - Jika diminta: pengingat email terjadwal (lihat skill scheduled-recurring-tasks + integrasi Resend)
 

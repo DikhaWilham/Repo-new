@@ -33,7 +33,7 @@
 - [x] Upload/hapus/preview lampiran PDF & foto (object storage, maks 10 MB)
 - [x] Form tambah/edit lengkap dengan validasi tanggal
 - [x] Drawer detail: semua field, hari tersisa, keterangan, lampiran
-- [x] Tabel desktop + kartu mobile, 6 data contoh realistis
+- [x] Tabel desktop + daftar ringkas mobile (nama counter + brand/CV + badge status + ikon mata; detail lengkap via drawer, tombol Edit/Hapus pindah ke drawer detail), 6 data contoh realistis
 - [x] Import massal dari spreadsheet CSV/Excel/.xls (preview, validasi per baris, template unduh, parsing tanggal & angka format Indonesia)
 - [x] Fix: kata sandi admin sempat terganti via alur lupa kata sandi sehingga semua aksi gagal ("Tidak terautentikasi"); dikembalikan ke default dan tercatat di test_credentials.md
 - [x] PWA: installable ke layar utama HP (manifest.json, service worker, ikon aplikasi kustom), judul & favicon aplikasi

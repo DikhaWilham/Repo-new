@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, Pencil, Trash2, FileSearch } from "lucide-react";
 import StatusBadge from "@/components/app/StatusBadge";
@@ -97,42 +96,33 @@ export default function DocTable({ docs, loading, onDetail, onEdit, onDelete }) 
         </table>
       </div>
 
-      {/* Kartu mobile */}
-      <div data-testid="doc-card-list" className="space-y-3 md:hidden">
+      {/* Daftar ringkas mobile */}
+      <div data-testid="doc-card-list" className="space-y-2 md:hidden">
         {docs.map((doc) => (
-          <Card key={doc.id} data-testid={`doc-card-${doc.id}`} className="border-slate-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-headline font-semibold text-slate-900">{doc.nama_counter}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">{doc.alamat_counter}</p>
-                </div>
-                <StatusBadge status={doc.status} testid={`status-badge-card-${doc.id}`} />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                <div><span className="text-slate-500">Brand:</span> <span className="font-medium text-slate-800">{doc.nama_brand}</span></div>
-                <div><span className="text-slate-500">CV:</span> <span className="font-medium text-slate-800">{doc.nama_cv}</span></div>
-                <div><span className="text-slate-500">Skema:</span> <span className="font-medium text-slate-800">{SKEMA_LABEL[doc.skema]}</span></div>
-                <div><span className="text-slate-500">Luasan:</span> <span className="font-data font-medium text-slate-800">{doc.luasan} m²</span></div>
-                <div><span className="text-slate-500">Service Charge:</span> <span className="font-data font-medium text-slate-800">{formatRupiah(doc.service_charge)}</span></div>
-                <div><span className="text-slate-500">Promo Levy:</span> <span className="font-data font-medium text-slate-800">{formatRupiah(doc.promo_levy)}</span></div>
-                <div className="col-span-2">
-                  <span className="text-slate-500">Masa Sewa:</span>{" "}
-                  <span className="font-medium text-slate-800">{formatTanggal(doc.tanggal_mulai)} — {formatTanggal(doc.tanggal_akhir)}</span>
-                  {doc.hari_tersisa != null && (
-                    <span className={`ml-1 font-data font-medium ${doc.hari_tersisa < 0 ? "text-rose-600" : doc.hari_tersisa <= 30 ? "text-amber-600" : "text-slate-500"}`}>
-                      ({doc.hari_tersisa < 0 ? `lewat ${Math.abs(doc.hari_tersisa)} hari` : `${doc.hari_tersisa} hari lagi`})
-                    </span>
-                  )}
-                </div>
-                <div className="col-span-2"><span className="text-slate-500">Reminder:</span> <span className="font-medium text-slate-800">{formatTanggal(doc.reminder_date)}</span></div>
-                {doc.keterangan && <div className="col-span-2"><span className="text-slate-500">Keterangan:</span> <span className="text-slate-700">{doc.keterangan}</span></div>}
-              </div>
-              <div className="mt-3 flex justify-end border-t border-slate-100 pt-2">
-                <ActionButtons doc={doc} onDetail={onDetail} onEdit={onEdit} onDelete={onDelete} compact />
-              </div>
-            </CardContent>
-          </Card>
+          <div
+            key={doc.id}
+            data-testid={`doc-card-${doc.id}`}
+            className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-headline text-sm font-semibold text-slate-900">{doc.nama_counter}</p>
+              <p className="truncate text-xs text-slate-500">
+                {doc.nama_brand}
+                {doc.nama_cv ? ` · ${doc.nama_cv}` : ""}
+              </p>
+            </div>
+            <StatusBadge status={doc.status} testid={`status-badge-card-${doc.id}`} />
+            <Button
+              data-testid={`doc-detail-button-${doc.id}`}
+              variant="ghost"
+              size="icon"
+              onClick={() => onDetail(doc)}
+              title="Lihat detail"
+              className="shrink-0 text-slate-500 hover:text-slate-900"
+            >
+              <Eye className="h-5 w-5" />
+            </Button>
+          </div>
         ))}
       </div>
     </>

@@ -215,7 +215,13 @@ export default function DashboardPage() {
 
       <DocForm open={formOpen} onOpenChange={(o) => { setFormOpen(o); if (!o) setEditing(null); }} editing={editing} onSave={handleSave} />
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} onDone={() => { fetchDocs(); fetchStats(); }} />
-      <DocDetail doc={detail} onClose={() => setDetail(null)} onRefresh={refreshDetail} />
+      <DocDetail
+        doc={detail}
+        onClose={() => setDetail(null)}
+        onRefresh={refreshDetail}
+        onEdit={(d) => { setDetail(null); setEditing(d); setFormOpen(true); }}
+        onDelete={(d) => { setDetail(null); setDeleting(d); }}
+      />
 
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent data-testid="delete-confirm-dialog">

@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Upload, Trash2, Loader2, Image as ImageIcon } from "lucide-react";
+import { FileText, Upload, Trash2, Loader2, Image as ImageIcon, Pencil } from "lucide-react";
 import StatusBadge from "@/components/app/StatusBadge";
 import { formatTanggal, formatRupiah, SKEMA_LABEL } from "@/lib/format";
 import { toast } from "sonner";
@@ -19,7 +19,7 @@ function Row({ label, value, mono }) {
   );
 }
 
-export default function DocDetail({ doc, onClose, onRefresh }) {
+export default function DocDetail({ doc, onClose, onRefresh, onEdit, onDelete }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -150,6 +150,27 @@ export default function DocDetail({ doc, onClose, onRefresh }) {
               ))}
             </ul>
           )}
+        </div>
+
+        <div className="mt-6 flex gap-3 pb-2">
+          <Button
+            data-testid="detail-edit-button"
+            variant="outline"
+            className="flex-1 text-slate-600 hover:text-slate-900"
+            onClick={() => onEdit(doc)}
+          >
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit Dokumen
+          </Button>
+          <Button
+            data-testid="detail-delete-button"
+            variant="outline"
+            className="flex-1 border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+            onClick={() => onDelete(doc)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Hapus
+          </Button>
         </div>
       </SheetContent>
     </Sheet>

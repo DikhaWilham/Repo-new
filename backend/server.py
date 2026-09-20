@@ -369,10 +369,12 @@ async def reset_password(input: ResetPasswordInput):
 # ---------- Document endpoints ----------
 
 @api_router.get("/documents")
-async def list_documents(search: str = "", skema: str = "", status: str = "", user: dict = Depends(get_current_user)):
+async def list_documents(search: str = "", skema: str = "", status: str = "", nama_cv: str = "", user: dict = Depends(get_current_user)):
     query = {}
     if skema and skema != "all":
         query["skema"] = skema
+    if nama_cv and nama_cv != "all":
+        query["nama_cv"] = nama_cv
     if search:
         import re
         rx = {"$regex": re.escape(search), "$options": "i"}
@@ -395,6 +397,7 @@ async def document_stats(user: dict = Depends(get_current_user)):
         "berakhir": sum(1 for d in serialized if d["status"] == "berakhir"),
         "total_luasan": sum(d["luasan"] for d in serialized),
         "total_service_charge": sum(d["service_charge"] for d in serialized),
+        "daftar_cv": sorted({d["nama_cv"] for d in serialized if d["nama_cv"]}),
         "hampir_berakhir_list": [
             {"id": d["id"], "nama_counter": d["nama_counter"], "nama_brand": d["nama_brand"],
              "tanggal_akhir": d["tanggal_akhir"], "hari_tersisa": d["hari_tersisa"]}

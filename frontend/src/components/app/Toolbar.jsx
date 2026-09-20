@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, FileDown, Plus, RotateCcw, Upload } from "lucide-react";
 
-export default function Toolbar({ search, setSearch, skema, setSkema, status, setStatus, onExport, onImport, onAdd, onReset }) {
+export default function Toolbar({ search, setSearch, skema, setSkema, status, setStatus, cv, setCv, cvList, onExport, onImport, onAdd, onReset }) {
   return (
     <div data-testid="filter-toolbar" className="flex flex-col gap-3 md:flex-row md:items-center">
       <div className="relative flex-1">
@@ -26,6 +26,17 @@ export default function Toolbar({ search, setSearch, skema, setSkema, status, se
             <SelectItem value="sewa">Sewa</SelectItem>
             <SelectItem value="bagi_hasil">Bagi Hasil</SelectItem>
             <SelectItem value="hybrid">Hybrid</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={cv} onValueChange={setCv}>
+          <SelectTrigger data-testid="filter-cv-select" className="w-full md:w-[150px]">
+            <SelectValue placeholder="Semua CV" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua CV</SelectItem>
+            {(cvList || []).map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={setStatus}>

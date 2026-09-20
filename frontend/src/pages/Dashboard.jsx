@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [skema, setSkema] = useState("all");
   const [status, setStatus] = useState("all");
+  const [cv, setCv] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -45,6 +46,7 @@ export default function DashboardPage() {
       if (debouncedSearch) params.search = debouncedSearch;
       if (skema !== "all") params.skema = skema;
       if (status !== "all") params.status = status;
+      if (cv !== "all") params.nama_cv = cv;
       const { data } = await api.get("/documents", { params });
       setDocs(data);
     } catch (err) {
@@ -52,7 +54,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, skema, status]);
+  }, [debouncedSearch, skema, status, cv]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -164,6 +166,7 @@ export default function DashboardPage() {
     setSearch("");
     setSkema("all");
     setStatus("all");
+    setCv("all");
   };
 
   return (
@@ -199,6 +202,9 @@ export default function DashboardPage() {
           setSkema={setSkema}
           status={status}
           setStatus={setStatus}
+          cv={cv}
+          setCv={setCv}
+          cvList={stats?.daftar_cv || []}
           onExport={exportCSV}
           onImport={() => setImportOpen(true)}
           onAdd={() => { setEditing(null); setFormOpen(true); }}

@@ -26,7 +26,7 @@
 
 ## Terimplementasi (Juni 2026)
 - [x] Auth lengkap: register, login, logout, refresh token, forgot/reset password (email), lockout brute-force
-- [x] Dashboard statistik: total/aktif/hampir berakhir/berakhir + total luasan & service charge
+- [x] Dashboard statistik: total/aktif/hampir berakhir/berakhir (kartu Total Luasan & Total Service Charge dihilangkan atas permintaan pengguna)
 - [x] Banner reminder kontrak yang memasuki masa reminder
 - [x] Pencarian (counter/brand/CV/alamat) + filter skema & status + reset filter
 - [x] Export CSV (data terfilter, separator `;` kompatibel Excel id-ID, BOM UTF-8)

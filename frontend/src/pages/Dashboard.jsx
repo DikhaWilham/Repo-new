@@ -15,6 +15,7 @@ import Toolbar from "@/components/app/Toolbar";
 import DocTable from "@/components/app/DocTable";
 import DocForm from "@/components/app/DocForm";
 import DocDetail from "@/components/app/DocDetail";
+import ImportDialog from "@/components/app/ImportDialog";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   const [skema, setSkema] = useState("all");
   const [status, setStatus] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
   const [deleting, setDeleting] = useState(null);
@@ -198,6 +200,7 @@ export default function DashboardPage() {
           status={status}
           setStatus={setStatus}
           onExport={exportCSV}
+          onImport={() => setImportOpen(true)}
           onAdd={() => { setEditing(null); setFormOpen(true); }}
           onReset={resetFilters}
         />
@@ -211,6 +214,7 @@ export default function DashboardPage() {
       </main>
 
       <DocForm open={formOpen} onOpenChange={(o) => { setFormOpen(o); if (!o) setEditing(null); }} editing={editing} onSave={handleSave} />
+      <ImportDialog open={importOpen} onOpenChange={setImportOpen} onDone={() => { fetchDocs(); fetchStats(); }} />
       <DocDetail doc={detail} onClose={() => setDetail(null)} onRefresh={refreshDetail} />
 
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>

@@ -1,9 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, FileDown, Plus, RotateCcw } from "lucide-react";
+import { Search, FileDown, Plus, RotateCcw, Upload } from "lucide-react";
 
-export default function Toolbar({ search, setSearch, skema, setSkema, status, setStatus, onExport, onAdd, onReset }) {
+export default function Toolbar({ search, setSearch, skema, setSkema, status, setStatus, onExport, onImport, onAdd, onReset }) {
   return (
     <div data-testid="filter-toolbar" className="flex flex-col gap-3 md:flex-row md:items-center">
       <div className="relative flex-1">
@@ -46,6 +46,10 @@ export default function Toolbar({ search, setSearch, skema, setSkema, status, se
         <Button data-testid="export-csv-button" variant="outline" onClick={onExport} className="text-slate-600 hover:text-slate-900">
           <FileDown className="mr-2 h-4 w-4" />
           Export CSV
+        </Button>
+        <Button data-testid="import-button" variant="outline" onClick={onImport} className="text-slate-600 hover:text-slate-900">
+          <Upload className="mr-2 h-4 w-4" />
+          Import
         </Button>
         <Button data-testid="add-document-button" onClick={onAdd} className="col-span-2 bg-slate-900 text-white hover:bg-slate-800 md:col-span-1">
           <Plus className="mr-2 h-4 w-4" />

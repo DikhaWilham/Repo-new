@@ -34,6 +34,8 @@
 - [x] Form tambah/edit lengkap dengan validasi tanggal
 - [x] Drawer detail: semua field, hari tersisa, keterangan, lampiran
 - [x] Tabel desktop + kartu mobile, 6 data contoh realistis
+- [x] Import massal dari spreadsheet CSV/Excel (preview, validasi per baris, template unduh, parsing tanggal & angka format Indonesia)
+- [x] PWA: installable ke layar utama HP (manifest.json, service worker, ikon aplikasi kustom), judul & favicon aplikasi
 - [x] Testing E2E: backend 11/11 pytest lulus, frontend semua alur terverifikasi (iteration_1.json)
 
 ## Backlog Prioritas

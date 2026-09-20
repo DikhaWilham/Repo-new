@@ -6,6 +6,7 @@ import uuid
 import hashlib
 import secrets
 import logging
+import re
 from datetime import datetime, timezone, timedelta, date
 from html import escape
 from urllib.parse import urlparse
@@ -453,6 +454,162 @@ async def delete_document(doc_id: str, user: dict = Depends(get_current_user)):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Dokumen tidak ditemukan")
     return {"message": "Dokumen dihapus"}
+
+
+# ---------- Spreadsheet import ----------
+
+IMPORT_COLUMN_MAP = {
+    "nama counter": "nama_counter", "counter": "nama_counter",
+    "alamat counter": "alamat_counter", "alamat": "alamat_counter",
+    "skema": "skema", "bagi hasil atau sewa": "skema", "jenis sewa": "skema", "jenis": "skema",
+    "nama brand": "nama_brand", "brand": "nama_brand",
+    "nama cv": "nama_cv", "nama cv/pt": "nama_cv", "cv": "nama_cv", "cv/pt": "nama_cv",
+    "luasan": "luasan", "luasan m2": "luasan", "luas": "luasan", "luas m2": "luasan",
+    "service charge": "service_charge", "service charge rp": "service_charge",
+    "promo levy": "promo_levy", "promo levy rp": "promo_levy",
+    "tanggal mulai sewa": "tanggal_mulai", "tanggal mulai": "tanggal_mulai", "mulai sewa": "tanggal_mulai",
+    "tanggal akhir sewa": "tanggal_akhir", "tanggal akhir": "tanggal_akhir", "akhir sewa": "tanggal_akhir",
+    "reminder date": "reminder_date", "reminder": "reminder_date",
+    "keterangan": "keterangan", "keterangan / update progres": "keterangan", "keterangan progres": "keterangan",
+}
+
+
+def _norm_header(h):
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9/ ]", " ", str(h).strip().lower())).strip()
+
+
+def _parse_skema(val):
+    s = str(val or "").strip().lower()
+    if not s:
+        return "sewa", None
+    if "bagi" in s:
+        return "bagi_hasil", None
+    if "hybrid" in s or "campur" in s:
+        return "hybrid", None
+    if "sewa" in s:
+        return "sewa", None
+    return "sewa", f"Skema '{val}' tidak dikenali"
+
+
+def _parse_number(val):
+    s = str(val or "").strip()
+    if not s:
+        return 0.0
+    s = re.sub(r"(?i)rp", "", s)
+    s = re.sub(r"(?i)m\s*2|m²", "", s).replace(" ", "").strip()
+    if not s:
+        return 0.0
+    if re.fullmatch(r"-?\d{1,3}(\.\d{3})+(,\d+)?", s):
+        s = s.replace(".", "").replace(",", ".")
+    else:
+        s = s.replace(",", ".")
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+def _parse_date(val):
+    import pandas as pd
+    s = str(val or "").strip()
+    if not s:
+        return None
+    ts = pd.to_datetime(s, dayfirst=True, errors="coerce")
+    if pd.isna(ts):
+        return None
+    return ts.date().isoformat()
+
+
+@api_router.post("/documents/import")
+async def import_documents(file: UploadFile = File(...), dry: bool = False, user: dict = Depends(get_current_user)):
+    import io as _io
+    import pandas as pd
+    filename = file.filename or ""
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Ukuran file maksimal 10 MB")
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    try:
+        if ext in ("xlsx", "xls"):
+            df = pd.read_excel(_io.BytesIO(data), dtype=str)
+        elif ext == "csv":
+            df = pd.read_csv(_io.BytesIO(data), sep=None, engine="python", dtype=str)
+        else:
+            raise HTTPException(status_code=400, detail="Format file harus .csv atau .xlsx")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=400, detail="File tidak dapat dibaca. Gunakan template yang disediakan.")
+
+    df = df.fillna("")
+    colmap = {}
+    for col in df.columns:
+        field = IMPORT_COLUMN_MAP.get(_norm_header(col))
+        if field and field not in colmap.values():
+            colmap[col] = field
+    if "nama_counter" not in colmap.values():
+        raise HTTPException(status_code=400, detail="Kolom 'Nama Counter' tidak ditemukan. Sesuaikan nama kolom dengan template.")
+
+    now = datetime.now(timezone.utc).isoformat()
+    docs, errors, total = [], [], 0
+    for idx, row in df.iterrows():
+        rec = {}
+        for col, field in colmap.items():
+            v = row[col]
+            rec[field] = "" if v is None else str(v).strip()
+        if not rec.get("nama_counter"):
+            continue
+        total += 1
+        mulai = _parse_date(rec.get("tanggal_mulai"))
+        akhir = _parse_date(rec.get("tanggal_akhir"))
+        reminder = _parse_date(rec.get("reminder_date"))
+        skema, skema_err = _parse_skema(rec.get("skema"))
+        problems = []
+        if not mulai:
+            problems.append("Tanggal Mulai kosong/tidak valid")
+        if not akhir:
+            problems.append("Tanggal Akhir kosong/tidak valid")
+        if skema_err:
+            problems.append(skema_err)
+        if mulai and akhir and akhir < mulai:
+            problems.append("Tanggal Akhir sebelum Tanggal Mulai")
+        if problems:
+            errors.append({"row": int(idx) + 2, "nama_counter": rec["nama_counter"], "message": "; ".join(problems)})
+            continue
+        docs.append({
+            "_id": str(uuid.uuid4()),
+            "nama_counter": rec["nama_counter"],
+            "alamat_counter": rec.get("alamat_counter", ""),
+            "skema": skema,
+            "nama_brand": rec.get("nama_brand", ""),
+            "nama_cv": rec.get("nama_cv", ""),
+            "luasan": _parse_number(rec.get("luasan")) or 0,
+            "service_charge": _parse_number(rec.get("service_charge")) or 0,
+            "promo_levy": _parse_number(rec.get("promo_levy")) or 0,
+            "tanggal_mulai": mulai,
+            "tanggal_akhir": akhir,
+            "reminder_date": reminder,
+            "keterangan": rec.get("keterangan", ""),
+            "attachments": [],
+            "created_by": user["_id"],
+            "created_at": now,
+            "updated_at": now,
+        })
+
+    imported = 0
+    if not dry and docs:
+        await db.lease_docs.insert_many(docs)
+        imported = len(docs)
+    return {
+        "total_rows": total,
+        "valid": len(docs),
+        "imported": imported,
+        "errors": errors,
+        "preview": [
+            {k: v for k, v in d.items() if k not in ("_id", "attachments", "created_by", "created_at", "updated_at")}
+            for d in docs[:20]
+        ],
+    }
 
 
 ALLOWED_EXT = {"pdf": "application/pdf", "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}

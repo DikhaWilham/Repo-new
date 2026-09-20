@@ -48,5 +48,11 @@
 - Kumpulkan feedback pengguna setelah pemakaian awal
 - Jika diminta: pengingat email terjadwal (lihat skill scheduled-recurring-tasks + integrasi Resend)
 
+## Import Data Pengguna (Sep 2026)
+- File: inbound341833393433663285.xlsx (9 sheet) — diimport via script `/app/scripts/import_user_sheet.py` + `import_remaining_brands.py`
+- Sheet diimport: CV MITRA, CV MULIA, PT MITRA, INTERN, SSP → **135 dokumen total** (124 + 11 konter multi-brand). Sheet ANALIST dilewati (duplikat 119/124), sheet Sertifikasi & BRAND bukan data sewa.
+- Kunci dedup: nama konter + brand. Reminder date default: 60 hari sebelum tanggal akhir. Detail skema & service charge bertingkat disimpan di Keterangan.
+- 10 baris dilewati karena tanggal tidak lengkap: HT Batam (Happy Time Junior), Happy Time Sidoarjo (Happy Train), Luwes Salatiga, HT Bontang (Mini Train), Paris Van Java (Funtopia), Manado Trade Center, Lippo Mall Manado, Artos Magelang, Lawu Plaza Madiun, Ramai Manyaran, Nakamura Semarang.
+
 ## Kredensial
 Lihat `/app/memory/test_credentials.md` (admin: dikhawilham77@gmail.com).

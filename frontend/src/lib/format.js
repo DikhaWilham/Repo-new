@@ -23,6 +23,7 @@ export const SKEMA_LABEL = {
 
 export const STATUS_LABEL = {
   aktif: "Aktif",
+  reminder_3_bulan: "Reminder 3 Bulan",
   hampir_berakhir: "Hampir Berakhir",
   berakhir: "Berakhir",
 };

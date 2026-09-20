@@ -69,7 +69,7 @@ export default function DocDetail({ doc, onClose, onRefresh, onEdit, onDelete })
         <div className="mt-2 flex items-center gap-3">
           <StatusBadge status={doc.status} testid="detail-status-badge" />
           {doc.hari_tersisa != null && (
-            <span data-testid="detail-days-remaining" className={`font-data text-xs font-semibold ${doc.hari_tersisa < 0 ? "text-rose-600" : doc.hari_tersisa <= 30 ? "text-amber-600" : "text-slate-600"}`}>
+            <span data-testid="detail-days-remaining" className={`font-data text-xs font-semibold ${doc.hari_tersisa < 0 ? "text-rose-600" : doc.hari_tersisa <= 30 ? "text-amber-600" : doc.hari_tersisa <= 90 ? "text-emerald-600" : "text-slate-600"}`}>
               {doc.hari_tersisa < 0 ? `Berakhir ${Math.abs(doc.hari_tersisa)} hari lalu` : `${doc.hari_tersisa} hari menuju akhir sewa`}
             </span>
           )}

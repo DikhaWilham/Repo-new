@@ -46,6 +46,7 @@ export default function Toolbar({ search, setSearch, skema, setSkema, status, se
           <SelectContent>
             <SelectItem value="all">Semua Status</SelectItem>
             <SelectItem value="aktif">Aktif</SelectItem>
+            <SelectItem value="reminder_3_bulan">Reminder 3 Bulan</SelectItem>
             <SelectItem value="hampir_berakhir">Hampir Berakhir</SelectItem>
             <SelectItem value="berakhir">Berakhir</SelectItem>
           </SelectContent>

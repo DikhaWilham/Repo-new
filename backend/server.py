@@ -176,18 +176,10 @@ def compute_status(doc: dict):
     days_left = (akhir - today).days
     if days_left < 0:
         return "berakhir", days_left
-    reminder = None
-    if doc.get("reminder_date"):
-        try:
-            reminder = date.fromisoformat(doc["reminder_date"])
-        except Exception:
-            reminder = None
-    if reminder is not None:
-        if today >= reminder:
-            return "hampir_berakhir", days_left
-        return "aktif", days_left
     if days_left <= 30:
         return "hampir_berakhir", days_left
+    if days_left <= 90:
+        return "reminder_3_bulan", days_left
     return "aktif", days_left
 
 
@@ -393,6 +385,7 @@ async def document_stats(user: dict = Depends(get_current_user)):
     stats = {
         "total": len(serialized),
         "aktif": sum(1 for d in serialized if d["status"] == "aktif"),
+        "reminder_3_bulan": sum(1 for d in serialized if d["status"] == "reminder_3_bulan"),
         "hampir_berakhir": sum(1 for d in serialized if d["status"] == "hampir_berakhir"),
         "berakhir": sum(1 for d in serialized if d["status"] == "berakhir"),
         "total_luasan": sum(d["luasan"] for d in serialized),
@@ -400,8 +393,8 @@ async def document_stats(user: dict = Depends(get_current_user)):
         "daftar_cv": sorted({d["nama_cv"] for d in serialized if d["nama_cv"]}),
         "hampir_berakhir_list": [
             {"id": d["id"], "nama_counter": d["nama_counter"], "nama_brand": d["nama_brand"],
-             "tanggal_akhir": d["tanggal_akhir"], "hari_tersisa": d["hari_tersisa"]}
-            for d in serialized if d["status"] == "hampir_berakhir"
+             "tanggal_akhir": d["tanggal_akhir"], "hari_tersisa": d["hari_tersisa"], "status": d["status"]}
+            for d in serialized if d["status"] in ("hampir_berakhir", "reminder_3_bulan")
         ],
     }
     return stats

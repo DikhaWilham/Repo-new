@@ -26,7 +26,7 @@
 
 ## Terimplementasi (Juni 2026)
 - [x] Auth lengkap: register, login, logout, refresh token, forgot/reset password (email), lockout brute-force
-- [x] Dashboard statistik: total/aktif/hampir berakhir/berakhir (kartu Total Luasan & Total Service Charge dihilangkan atas permintaan pengguna)
+- [x] Dashboard statistik: 5 kartu (Total, Aktif, Reminder ≤3 Bulan, Hampir Berakhir ≤1 Bulan, Berakhir) — sistem reminder 3 kategori warna: Hijau (≤90 hari), Kuning (≤30 hari), Merah (lewat tanggal akhir); status dihitung otomatis dari tanggal akhir sewa, bukan dari field reminder_date
 - [x] Banner reminder kontrak yang memasuki masa reminder
 - [x] Pencarian (counter/brand/CV/alamat) + filter skema, status, & **entitas CV** (CV Mitra, CV Mulia, PT Mitra, Intern, SSP — dropdown dinamis dari data, endpoint `GET /documents?nama_cv=`) + reset filter
 - [x] Export CSV (data terfilter, separator `;` kompatibel Excel id-ID, BOM UTF-8)

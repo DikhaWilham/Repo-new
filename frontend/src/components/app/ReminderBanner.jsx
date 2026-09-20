@@ -27,7 +27,9 @@ export default function ReminderBanner({ stats, onOpenDetail }) {
                 </button>
                 <span className="text-xs text-amber-700">
                   {item.nama_brand} · berakhir {formatTanggal(item.tanggal_akhir)} ·{" "}
-                  <span className="font-data font-semibold">{item.hari_tersisa} hari lagi</span>
+                  <span className={`font-data font-semibold ${item.status === "reminder_3_bulan" ? "text-emerald-700" : "text-amber-800"}`}>
+                    {item.hari_tersisa} hari lagi
+                  </span>
                 </span>
               </li>
             ))}

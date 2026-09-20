@@ -78,7 +78,7 @@ export default function DocTable({ docs, loading, onDetail, onEdit, onDelete }) 
                 <td className="px-4 py-3 text-xs text-slate-600">
                   {formatTanggal(doc.tanggal_mulai)} — {formatTanggal(doc.tanggal_akhir)}
                   {doc.hari_tersisa != null && (
-                    <p className={`font-data font-medium ${doc.hari_tersisa < 0 ? "text-rose-600" : doc.hari_tersisa <= 30 ? "text-amber-600" : "text-slate-500"}`}>
+                    <p className={`font-data font-medium ${doc.hari_tersisa < 0 ? "text-rose-600" : doc.hari_tersisa <= 30 ? "text-amber-600" : doc.hari_tersisa <= 90 ? "text-emerald-600" : "text-slate-500"}`}>
                       {doc.hari_tersisa < 0 ? `lewat ${Math.abs(doc.hari_tersisa)} hari` : `${doc.hari_tersisa} hari lagi`}
                     </p>
                   )}

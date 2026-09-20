@@ -1,0 +1,114 @@
+{
+  "project_info": {
+    "name": "SewaKontrak Pro - System Monitoring Dokumen Sewa Menyewa Counter",
+    "app_type": "dashboard",
+    "language": "Bahasa Indonesia",
+    "theme": {
+      "mode": "light",
+      "support_toggle": true
+    }
+  },
+  "typography": {
+    "headline_font": "Plus Jakarta Sans, sans-serif",
+    "body_font": "IBM Plex Sans, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "font_pairings": "Swiss High-Contrast Utility (Plus Jakarta Sans for headings, IBM Plex Sans for tabular data & forms, JetBrains Mono for metrics and monetary values)",
+    "rules": {
+      "h1": "text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100",
+      "h2": "text-xl md:text-2xl font-semibold tracking-tight text-slate-800 dark:text-slate-200",
+      "h3": "text-lg font-medium text-slate-800 dark:text-slate-200",
+      "body": "text-sm text-slate-600 dark:text-slate-300 leading-relaxed",
+      "mono_data": "font-mono text-sm tracking-wide font-medium text-slate-900 dark:text-slate-100"
+    }
+  },
+  "colors": {
+    "archetype": "SWISS & HIGH-CONTRAST COMMERCIAL EXECUTIVE",
+    "palette": {
+      "primary": "#0F172A",
+      "primary_hover": "#1E293B",
+      "secondary": "#2563EB",
+      "accent_emerald": "#059669",
+      "accent_amber": "#D97706",
+      "accent_rose": "#E11D48",
+      "background_light": "#F8FAFC",
+      "card_light": "#FFFFFF",
+      "border_light": "#E2E8F0",
+      "text_main": "#0F172A",
+      "text_muted": "#64748B"
+    },
+    "status_badges": {
+      "aktif": "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+      "hampir_berakhir": "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 animate-pulse",
+      "berakhir": "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
+    }
+  },
+  "layout_and_grid": {
+    "spacing": "Generous Spacing (p-6, p-8, gap-6)",
+    "dashboard_grid": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6",
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6",
+    "header_height": "h-16 border-b bg-white/80 backdrop-blur-md sticky top-0 z-40"
+  },
+  "key_components_to_build": [
+    {
+      "name": "AuthLoginPage",
+      "description": "Form Login Email & Password berbasis JWT dengan Bahasa Indonesia, visual banner counter retail di panel samping, dan validasi form."
+    },
+    {
+      "name": "DashboardStatsOverview",
+      "description": "4 Card Ringkasan Statistik: Total Kontrak, Kontrak Aktif, Hampir Berakhir (Urgent Reminder), Kontrak Berakhir + Ringkasan Total Luasan (m2) & Estimasi Service Charge."
+    },
+    {
+      "name": "ReminderAlertBanner",
+      "description": "Banner Notifikasi di bagian atas dashboard yang menyorot counter dengan tanggal reminder yang jatuh dalam 30 hari ke depan."
+    },
+    {
+      "name": "FilterAndSearchToolbar",
+      "description": "Search input (Nama Counter, Brand, CV), Filter Jenis (Bagi Hasil / Sewa / Hybrid), Filter Status (Aktif, Hampir Berakhir, Berakhir), Filter Tanggal, dan Tombol Export CSV/Excel."
+    },
+    {
+      "name": "SewaDocumentTableAndCards",
+      "description": "Tabel interaktif (desktop) dan kartu ringkas (mobile) yang menampilkan Nama Counter, Alamat Counter, Bagi Hasil/Sewa, Nama Brand, Nama CV, Luasan, Service Charge, Promo Levy, Masa Sewa, Tanggal Reminder, Badge Status, Keterangan Progres, serta aksi Detail / Edit / Hapus."
+    },
+    {
+      "name": "SewaDocumentFormModal",
+      "description": "Modal / Dialog Form Tambah & Edit Dokumen Sewa lengkap dengan masukan: Nama Counter, Alamat Counter, Skema (Bagi Hasil / Sewa / Hybrid), Nama Brand, Nama CV, Luasan (m2), Service Charge (Rp), Promo Levy (Rp), Tanggal Mulai Sewa, Tanggal Akhir Sewa, Reminder Date, Keterangan Progres, dan Upload Lampiran File (PDF/Gambar foto kontrak)."
+    },
+    {
+      "name": "DocumentDetailDrawer",
+      "description": "Drawer / Sheet detail dokumen sewa lengkap dengan preview lampiran foto/PDF, timeline status progres, kalkulasi hari menuju akhir sewa, dan riwayat update."
+    }
+  ],
+  "image_urls": [
+    {
+      "category": "auth_banner",
+      "url": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Interior counter retail modern untuk halaman login"
+    },
+    {
+      "category": "counter_sample_1",
+      "url": "https://images.pexels.com/photos/13068378/pexels-photo-13068378.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Sewa counter kosmetik & retail modern"
+    },
+    {
+      "category": "counter_sample_2",
+      "url": "https://images.pexels.com/photos/13068365/pexels-photo-13068365.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Sewa counter fashion & boutique"
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Pastikan seluruh teks antarmuka menggunakan Bahasa Indonesia resmi dan tepat (misal: 'Dokumen Sewa', 'Tanggal Mulai', 'Tanggal Akhir', 'Reminder Date', 'Bagi Hasil / Sewa', 'Service Charge', 'Promo Levy', 'Luasan (m²)', 'Nama CV/PT').",
+    "Gunakan komponen Shadcn UI yang sudah tersedia di src/components/ui/ (Dialog, Sheet, Table, Badge, Button, Input, Select, Calendar, Tabs, DropdownMenu, Checkbox, Progress, Sonner/Toast).",
+    "Sediakan data awal mock (seed sample counters di backend/frontend) agar saat pertama dibuka dashboard langsung terisi data realistis lengkap dengan counter yang hampir berakhir untuk menguji badge reminder.",
+    "Terapkan responsive layout penuh (Mobile First): Pada layar HP (mobile), sajikan daftar dokumen sewa sebagai Card Grid / List Card yang nyaman di-scroll dengan tombol Quick Action, sedangkan pada Web/Desktop tampilkan Table dengan sorting & column visibility.",
+    "Setiap elemen interaktif (button, input, filter, link, modal trigger) wajib memiliki atribut data-testid yang jelas (contoh: data-testid='login-submit-button', data-testid='add-counter-button', data-testid='export-excel-button').",
+    "Fitur Export CSV/Excel harus mengekspor data terfilter saat ini dengan format kolom yang rapi.",
+    "Fitur upload file lampiran mendukung format PDF dan Foto (.jpg, .png) dengan simulator upload / penyimpanan attachment ke backend atau base64 mock upload dan link unduh/preview.",
+    "Semua indikator hover state pada tombol dan menu wajib mendefinisikan warna teks secara eksplisit agar kontras tetap terjaga."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": {
+    "theme_rules": "Hindari gradien gelap berlebihan. Gunakan background bersih Slate-50 (#F8FAFC) dengan permukaan card putih crisp (#FFFFFF) serta border Slate-200 (#E2E8F0).",
+    "typography_rules": "Gunakan font Plus Jakarta Sans untuk Heading utama dan IBM Plex Sans / Monospace untuk angka nominal/luasan.",
+    "spacing_rules": "Sediakan p-6 hingga p-8 pada container utama. Jangan menumpuk teks tanpa margin.",
+    "testing_requirement": "Sertakan atribut data-testid pada seluruh elemen form, tombol aksi, dan status badge."
+  }
+}

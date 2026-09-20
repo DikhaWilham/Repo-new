@@ -526,20 +526,39 @@ async def import_documents(file: UploadFile = File(...), dry: bool = False, user
     import pandas as pd
     filename = file.filename or ""
     data = await file.read()
-    if len(data) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Ukuran file maksimal 10 MB")
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Ukuran file maksimal 5 MB untuk import. Bagi file menjadi beberapa bagian.")
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-    try:
-        if ext in ("xlsx", "xls"):
+    df = None
+
+    def _try_csv():
+        nonlocal df
+        for enc in ("utf-8-sig", "latin-1"):
+            try:
+                df = pd.read_csv(_io.BytesIO(data), sep=None, engine="python", dtype=str, encoding=enc)
+                return True
+            except Exception:
+                continue
+        return False
+
+    def _try_excel():
+        nonlocal df
+        try:
             df = pd.read_excel(_io.BytesIO(data), dtype=str)
-        elif ext == "csv":
-            df = pd.read_csv(_io.BytesIO(data), sep=None, engine="python", dtype=str)
-        else:
-            raise HTTPException(status_code=400, detail="Format file harus .csv atau .xlsx")
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=400, detail="File tidak dapat dibaca. Gunakan template yang disediakan.")
+            return True
+        except Exception:
+            return False
+
+    if ext in ("xlsx", "xls"):
+        ok = _try_excel() or _try_csv()
+    elif ext == "csv":
+        ok = _try_csv() or _try_excel()
+    else:
+        ok = _try_excel() or _try_csv()
+    if not ok or df is None:
+        raise HTTPException(status_code=400, detail="File tidak dapat dibaca. Simpan sebagai CSV atau Excel (.xlsx), atau gunakan template yang disediakan.")
+    if len(df) > 2000:
+        raise HTTPException(status_code=400, detail=f"File berisi {len(df)} baris. Maksimal 2000 baris per import — bagi file menjadi beberapa bagian.")
 
     df = df.fillna("")
     colmap = {}

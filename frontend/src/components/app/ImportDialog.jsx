@@ -29,6 +29,11 @@ function downloadTemplate() {
   URL.revokeObjectURL(url);
 }
 
+function friendlyUploadError(err) {
+  if (err?.response) return formatApiError(err);
+  return "Koneksi terputus saat mengunggah file. Pastikan internet stabil lalu coba lagi — jika file besar, bagi menjadi beberapa file lebih kecil.";
+}
+
 export default function ImportDialog({ open, onOpenChange, onDone }) {
   const fileRef = useRef(null);
   const [file, setFile] = useState(null);
@@ -53,10 +58,10 @@ export default function ImportDialog({ open, onOpenChange, onDone }) {
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const { data } = await api.post("/documents/import?dry=true", fd);
+      const { data } = await api.post("/documents/import?dry=true", fd, { timeout: 120000 });
       setResult(data);
     } catch (err) {
-      toast.error(formatApiError(err));
+      toast.error(friendlyUploadError(err));
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
     } finally {
@@ -77,12 +82,12 @@ export default function ImportDialog({ open, onOpenChange, onDone }) {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const { data } = await api.post("/documents/import", fd);
+      const { data } = await api.post("/documents/import", fd, { timeout: 120000 });
       toast.success(`${data.imported} dokumen berhasil diimpor${data.errors.length ? `, ${data.errors.length} baris dilewati` : ""}`);
       onDone();
       handleClose(false);
     } catch (err) {
-      toast.error(formatApiError(err));
+      toast.error(friendlyUploadError(err));
     } finally {
       setCommitting(false);
     }

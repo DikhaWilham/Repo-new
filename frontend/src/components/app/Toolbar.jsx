@@ -2,8 +2,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, FileDown, Plus, RotateCcw, Upload } from "lucide-react";
+import { PROGRES_MOU_OPTIONS } from "@/lib/format";
 
-export default function Toolbar({ search, setSearch, skema, setSkema, status, setStatus, cv, setCv, cvList, onExport, onImport, onAdd, onReset }) {
+export default function Toolbar({ search, setSearch, skema, setSkema, status, setStatus, cv, setCv, cvList, progresMou, setProgresMou, onExport, onImport, onAdd, onReset }) {
   return (
     <div data-testid="filter-toolbar" className="flex flex-col gap-3 md:flex-row md:items-center">
       <div className="relative flex-1">
@@ -18,7 +19,7 @@ export default function Toolbar({ search, setSearch, skema, setSkema, status, se
       </div>
       <div className="grid grid-cols-2 gap-3 md:flex md:items-center">
         <Select value={skema} onValueChange={setSkema}>
-          <SelectTrigger data-testid="filter-skema-select" className="w-full md:w-[150px]">
+          <SelectTrigger data-testid="filter-skema-select" className="w-full md:w-[130px]">
             <SelectValue placeholder="Skema" />
           </SelectTrigger>
           <SelectContent>
@@ -29,7 +30,7 @@ export default function Toolbar({ search, setSearch, skema, setSkema, status, se
           </SelectContent>
         </Select>
         <Select value={cv} onValueChange={setCv}>
-          <SelectTrigger data-testid="filter-cv-select" className="w-full md:w-[150px]">
+          <SelectTrigger data-testid="filter-cv-select" className="w-full md:w-[140px]">
             <SelectValue placeholder="Semua CV" />
           </SelectTrigger>
           <SelectContent>
@@ -40,7 +41,7 @@ export default function Toolbar({ search, setSearch, skema, setSkema, status, se
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger data-testid="filter-status-select" className="w-full md:w-[170px]">
+          <SelectTrigger data-testid="filter-status-select" className="w-full md:w-[160px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -49,6 +50,18 @@ export default function Toolbar({ search, setSearch, skema, setSkema, status, se
             <SelectItem value="reminder_3_bulan">Reminder 3 Bulan</SelectItem>
             <SelectItem value="hampir_berakhir">Hampir Berakhir</SelectItem>
             <SelectItem value="berakhir">Berakhir</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={progresMou} onValueChange={setProgresMou}>
+          <SelectTrigger data-testid="filter-progres-mou-select" className="w-full md:w-[170px]">
+            <SelectValue placeholder="Progres MOU" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Progres MOU</SelectItem>
+            <SelectItem value="in_progress">🟡 Semua Yang Sedang Proses</SelectItem>
+            {PROGRES_MOU_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button data-testid="reset-filter-button" variant="outline" onClick={onReset} className="text-slate-600 hover:text-slate-900">

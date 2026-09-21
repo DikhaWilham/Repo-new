@@ -363,12 +363,17 @@ async def reset_password(input: ResetPasswordInput):
 # ---------- Document endpoints ----------
 
 @api_router.get("/documents")
-async def list_documents(search: str = "", skema: str = "", status: str = "", nama_cv: str = "", user: dict = Depends(get_current_user)):
+async def list_documents(search: str = "", skema: str = "", status: str = "", nama_cv: str = "", progres_mou: str = "", user: dict = Depends(get_current_user)):
     query = {}
     if skema and skema != "all":
         query["skema"] = skema
     if nama_cv and nama_cv != "all":
         query["nama_cv"] = nama_cv
+    if progres_mou and progres_mou != "all":
+        if progres_mou == "in_progress":
+            query["progres_mou"] = {"$in": ["proses_mou", "mou_ditandatangani", "proses_fit_out", "akan_buka"]}
+        else:
+            query["progres_mou"] = progres_mou
     if search:
         import re
         rx = {"$regex": re.escape(search), "$options": "i"}

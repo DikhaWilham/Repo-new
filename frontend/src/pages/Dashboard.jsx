@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [skema, setSkema] = useState("all");
   const [status, setStatus] = useState("all");
   const [cv, setCv] = useState("all");
+  const [progresMou, setProgresMou] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -47,6 +48,7 @@ export default function DashboardPage() {
       if (skema !== "all") params.skema = skema;
       if (status !== "all") params.status = status;
       if (cv !== "all") params.nama_cv = cv;
+      if (progresMou !== "all") params.progres_mou = progresMou;
       const { data } = await api.get("/documents", { params });
       setDocs(data);
     } catch (err) {
@@ -54,7 +56,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, skema, status, cv]);
+  }, [debouncedSearch, skema, status, cv, progresMou]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -167,6 +169,7 @@ export default function DashboardPage() {
     setSkema("all");
     setStatus("all");
     setCv("all");
+    setProgresMou("all");
   };
 
   return (
@@ -205,6 +208,8 @@ export default function DashboardPage() {
           cv={cv}
           setCv={setCv}
           cvList={stats?.daftar_cv || []}
+          progresMou={progresMou}
+          setProgresMou={setProgresMou}
           onExport={exportCSV}
           onImport={() => setImportOpen(true)}
           onAdd={() => { setEditing(null); setFormOpen(true); }}

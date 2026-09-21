@@ -163,6 +163,7 @@ class DocumentInput(BaseModel):
     tanggal_akhir: str
     reminder_date: Optional[str] = None
     keterangan: Optional[str] = ""
+    progres_mou: Optional[str] = ""
 
 
 # ---------- Status computation ----------
@@ -200,6 +201,7 @@ def serialize_doc(doc: dict) -> dict:
         "tanggal_akhir": doc["tanggal_akhir"],
         "reminder_date": doc.get("reminder_date"),
         "keterangan": doc.get("keterangan", ""),
+        "progres_mou": doc.get("progres_mou", ""),
         "attachments": attachments,
         "status": status,
         "hari_tersisa": days_left,
@@ -467,6 +469,7 @@ IMPORT_COLUMN_MAP = {
     "tanggal akhir sewa": "tanggal_akhir", "tanggal akhir": "tanggal_akhir", "akhir sewa": "tanggal_akhir",
     "reminder date": "reminder_date", "reminder": "reminder_date",
     "keterangan": "keterangan", "keterangan / update progres": "keterangan", "keterangan progres": "keterangan",
+    "progres mou": "progres_mou", "progres": "progres_mou",
 }
 
 

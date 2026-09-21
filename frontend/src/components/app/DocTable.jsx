@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, Pencil, Trash2, FileSearch } from "lucide-react";
 import StatusBadge from "@/components/app/StatusBadge";
-import { formatTanggal, formatRupiah, SKEMA_LABEL } from "@/lib/format";
+import { formatTanggal, formatRupiah, SKEMA_LABEL, PROGRES_MOU_LABEL } from "@/lib/format";
 
 function ActionButtons({ doc, onDetail, onEdit, onDelete, compact }) {
   return (
@@ -56,6 +56,7 @@ export default function DocTable({ docs, loading, onDetail, onEdit, onDelete }) 
               <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500 text-right">Promo Levy</th>
               <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500">Masa Sewa</th>
               <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500">Reminder</th>
+              <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500">Progres MOU</th>
               <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
               <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500 text-right">Aksi</th>
             </tr>
@@ -85,6 +86,15 @@ export default function DocTable({ docs, loading, onDetail, onEdit, onDelete }) 
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-600">{formatTanggal(doc.reminder_date)}</td>
                 <td className="px-4 py-3">
+                  {doc.progres_mou ? (
+                    <span data-testid={`progres-mou-${doc.id}`} className="inline-flex whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      {PROGRES_MOU_LABEL[doc.progres_mou] || doc.progres_mou}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400">-</span>
+                  )}
+                </td>
+                <td className="px-4 py-3">
                   <StatusBadge status={doc.status} testid={`status-badge-${doc.id}`} />
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -110,6 +120,11 @@ export default function DocTable({ docs, loading, onDetail, onEdit, onDelete }) 
                 {doc.nama_brand}
                 {doc.nama_cv ? ` · ${doc.nama_cv}` : ""}
               </p>
+              {doc.progres_mou && (
+                <p data-testid={`progres-mou-card-${doc.id}`} className="truncate text-[11px] font-medium text-blue-600">
+                  {PROGRES_MOU_LABEL[doc.progres_mou] || doc.progres_mou}
+                </p>
+              )}
             </div>
             <StatusBadge status={doc.status} testid={`status-badge-card-${doc.id}`} />
             <Button

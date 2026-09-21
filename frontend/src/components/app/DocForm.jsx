@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Paperclip } from "lucide-react";
+import { PROGRES_MOU_OPTIONS } from "@/lib/format";
 
 const EMPTY = {
   nama_counter: "",
@@ -20,6 +21,7 @@ const EMPTY = {
   tanggal_akhir: "",
   reminder_date: "",
   keterangan: "",
+  progres_mou: "",
 };
 
 export default function DocForm({ open, onOpenChange, editing, onSave }) {
@@ -47,6 +49,7 @@ export default function DocForm({ open, onOpenChange, editing, onSave }) {
               tanggal_akhir: editing.tanggal_akhir || "",
               reminder_date: editing.reminder_date || "",
               keterangan: editing.keterangan || "",
+              progres_mou: editing.progres_mou || "",
             }
           : EMPTY
       );
@@ -154,6 +157,21 @@ export default function DocForm({ open, onOpenChange, editing, onSave }) {
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="keterangan">Keterangan / Update Progres</Label>
               <Textarea id="keterangan" data-testid="doc-form-keterangan" rows={3} value={form.keterangan} onChange={set("keterangan")} placeholder="cth: Menunggu draft perpanjangan dari pihak mall" />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Progres MOU</Label>
+              <Select value={form.progres_mou || "none"} onValueChange={(v) => setForm((f) => ({ ...f, progres_mou: v === "none" ? "" : v }))}>
+                <SelectTrigger data-testid="doc-form-progres-mou">
+                  <SelectValue placeholder="Pilih progres (opsional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Tidak ada / kontrak berjalan normal —</SelectItem>
+                  {PROGRES_MOU_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500">Gunakan untuk counter yang akan buka atau masih dalam proses, sebagai pengingat tahapan progresnya.</p>
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="lampiran">Lampiran Dokumen (PDF/JPG/PNG, maks 10 MB)</Label>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FileText, Upload, Trash2, Loader2, Image as ImageIcon, Pencil } from "lucide-react";
 import StatusBadge from "@/components/app/StatusBadge";
-import { formatTanggal, formatRupiah, SKEMA_LABEL } from "@/lib/format";
+import { formatTanggal, formatRupiah, SKEMA_LABEL, PROGRES_MOU_LABEL } from "@/lib/format";
 import { toast } from "sonner";
 import api, { formatApiError } from "@/lib/api";
 
@@ -80,6 +80,7 @@ export default function DocDetail({ doc, onClose, onRefresh, onEdit, onDelete })
           <Separator className="my-2" />
           <Row label="Alamat Counter" value={doc.alamat_counter} />
           <Row label="Skema" value={SKEMA_LABEL[doc.skema]} />
+          <Row label="Progres MOU" value={PROGRES_MOU_LABEL[doc.progres_mou] || doc.progres_mou || "-"} />
           <Row label="Nama Brand" value={doc.nama_brand} />
           <Row label="Nama CV/PT" value={doc.nama_cv} />
           <Row label="Luasan" value={`${doc.luasan} m²`} mono />

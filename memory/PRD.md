@@ -32,7 +32,7 @@
 - [x] Export CSV (data terfilter, separator `;` kompatibel Excel id-ID, BOM UTF-8)
 - [x] Upload/hapus/preview lampiran PDF & foto (object storage, maks 10 MB)
 - [x] Form tambah/edit lengkap dengan validasi tanggal
-- [x] Drawer detail: semua field, hari tersisa, keterangan, lampiran
+- [x] Kolom **Progres MOU** (Sep 2026): field `progres_mou` dengan opsi Proses MOU / MOU Ditandatangani / Proses Fit Out / Renovasi / Akan Buka / Sudah Beroperasi — tampil di tabel desktop (badge biru), daftar mobile, drawer detail, form tambah/edit, Export CSV, dan didukung mapping kolom "Progres MOU" saat import spreadsheet
 - [x] Tabel desktop + daftar ringkas mobile (nama counter + brand/CV + badge status + ikon mata; detail lengkap via drawer, tombol Edit/Hapus pindah ke drawer detail), 6 data contoh realistis
 - [x] Import massal dari spreadsheet CSV/Excel/.xls (preview, validasi per baris, template unduh, parsing tanggal & angka format Indonesia)
 - [x] Fix: kata sandi admin sempat terganti via alur lupa kata sandi sehingga semua aksi gagal ("Tidak terautentikasi"); dikembalikan ke default dan tercatat di test_credentials.md

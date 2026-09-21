@@ -45,7 +45,7 @@
 - **P2**: Role Admin/Staff, riwayat perubahan keterangan (audit trail), pagination tabel, dark mode toggle, lampiran multi-file sekaligus di form tambah
 
 ## Next Tasks
-- Koreksi data manual: Wonderland Gentan diubah ke mulai 2026-08-04, akhir 2027-08-03, reminder 2027-06-04 (Sep 2026, permintaan pengguna; endpoint PUT terverifikasi normal).
+- Insiden Sep 2026: "spinning up server terus" — RCA: cold start container preview setelah inaktivitas, bukan bug kode. Terverifikasi testing agent (iteration_2.json): load 1.3 dtk, dashboard 136 kontrak, 3x refresh stabil. Solusi permanen: deploy ke production agar container tidak sleep.
 - Kumpulkan feedback pengguna setelah pemakaian awal
 - Jika diminta: pengingat email terjadwal (lihat skill scheduled-recurring-tasks + integrasi Resend)
 

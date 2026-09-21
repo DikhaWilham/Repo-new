@@ -61,7 +61,7 @@ export default function DocForm({ open, onOpenChange, editing, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (form.tanggal_akhir < form.tanggal_mulai) {
+    if (form.tanggal_mulai && form.tanggal_akhir && form.tanggal_akhir < form.tanggal_mulai) {
       setError("Tanggal akhir sewa tidak boleh sebelum tanggal mulai");
       return;
     }
@@ -142,12 +142,12 @@ export default function DocForm({ open, onOpenChange, editing, onSave }) {
               <Input id="promo_levy" data-testid="doc-form-promo-levy" type="number" min="0" value={form.promo_levy} onChange={set("promo_levy")} placeholder="cth: 500000" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="tanggal_mulai">Tanggal Mulai Sewa *</Label>
-              <Input id="tanggal_mulai" data-testid="doc-form-tanggal-mulai" type="date" required value={form.tanggal_mulai} onChange={set("tanggal_mulai")} />
+              <Label htmlFor="tanggal_mulai">Tanggal Mulai Sewa</Label>
+              <Input id="tanggal_mulai" data-testid="doc-form-tanggal-mulai" type="date" value={form.tanggal_mulai} onChange={set("tanggal_mulai")} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="tanggal_akhir">Tanggal Akhir Sewa *</Label>
-              <Input id="tanggal_akhir" data-testid="doc-form-tanggal-akhir" type="date" required value={form.tanggal_akhir} onChange={set("tanggal_akhir")} />
+              <Label htmlFor="tanggal_akhir">Tanggal Akhir Sewa</Label>
+              <Input id="tanggal_akhir" data-testid="doc-form-tanggal-akhir" type="date" value={form.tanggal_akhir} onChange={set("tanggal_akhir")} />
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="reminder_date">Reminder Date</Label>

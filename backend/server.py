@@ -159,8 +159,8 @@ class DocumentInput(BaseModel):
     luasan: float
     service_charge: float
     promo_levy: float
-    tanggal_mulai: str
-    tanggal_akhir: str
+    tanggal_mulai: Optional[str] = ""
+    tanggal_akhir: Optional[str] = ""
     reminder_date: Optional[str] = None
     keterangan: Optional[str] = ""
     progres_mou: Optional[str] = ""
@@ -411,11 +411,12 @@ async def document_stats(user: dict = Depends(get_current_user)):
 async def create_document(input: DocumentInput, user: dict = Depends(get_current_user)):
     if input.skema not in ("sewa", "bagi_hasil", "hybrid"):
         raise HTTPException(status_code=400, detail="Skema tidak valid")
-    try:
-        if date.fromisoformat(input.tanggal_akhir) < date.fromisoformat(input.tanggal_mulai):
-            raise HTTPException(status_code=400, detail="Tanggal akhir tidak boleh sebelum tanggal mulai")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Format tanggal tidak valid")
+    if input.tanggal_mulai and input.tanggal_akhir:
+        try:
+            if date.fromisoformat(input.tanggal_akhir) < date.fromisoformat(input.tanggal_mulai):
+                raise HTTPException(status_code=400, detail="Tanggal akhir tidak boleh sebelum tanggal mulai")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Format tanggal tidak valid")
     doc_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     doc = input.model_dump()
@@ -437,11 +438,12 @@ async def get_document(doc_id: str, user: dict = Depends(get_current_user)):
 async def update_document(doc_id: str, input: DocumentInput, user: dict = Depends(get_current_user)):
     if input.skema not in ("sewa", "bagi_hasil", "hybrid"):
         raise HTTPException(status_code=400, detail="Skema tidak valid")
-    try:
-        if date.fromisoformat(input.tanggal_akhir) < date.fromisoformat(input.tanggal_mulai):
-            raise HTTPException(status_code=400, detail="Tanggal akhir tidak boleh sebelum tanggal mulai")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Format tanggal tidak valid")
+    if input.tanggal_mulai and input.tanggal_akhir:
+        try:
+            if date.fromisoformat(input.tanggal_akhir) < date.fromisoformat(input.tanggal_mulai):
+                raise HTTPException(status_code=400, detail="Tanggal akhir tidak boleh sebelum tanggal mulai")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Format tanggal tidak valid")
     update = input.model_dump()
     update["updated_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.lease_docs.update_one({"_id": doc_id}, {"$set": update})
@@ -588,10 +590,6 @@ async def import_documents(file: UploadFile = File(...), dry: bool = False, user
         reminder = _parse_date(rec.get("reminder_date"))
         skema, skema_err = _parse_skema(rec.get("skema"))
         problems = []
-        if not mulai:
-            problems.append("Tanggal Mulai kosong/tidak valid")
-        if not akhir:
-            problems.append("Tanggal Akhir kosong/tidak valid")
         if skema_err:
             problems.append(skema_err)
         if mulai and akhir and akhir < mulai:
@@ -599,6 +597,7 @@ async def import_documents(file: UploadFile = File(...), dry: bool = False, user
         if problems:
             errors.append({"row": int(idx) + 2, "nama_counter": rec["nama_counter"], "message": "; ".join(problems)})
             continue
+        progres = rec.get("progres_mou", "") or ("proses_mou" if not (mulai and akhir) else "")
         docs.append({
             "_id": str(uuid.uuid4()),
             "nama_counter": rec["nama_counter"],
@@ -609,10 +608,11 @@ async def import_documents(file: UploadFile = File(...), dry: bool = False, user
             "luasan": _parse_number(rec.get("luasan")) or 0,
             "service_charge": _parse_number(rec.get("service_charge")) or 0,
             "promo_levy": _parse_number(rec.get("promo_levy")) or 0,
-            "tanggal_mulai": mulai,
-            "tanggal_akhir": akhir,
+            "tanggal_mulai": mulai or "",
+            "tanggal_akhir": akhir or "",
             "reminder_date": reminder,
             "keterangan": rec.get("keterangan", ""),
+            "progres_mou": progres,
             "attachments": [],
             "created_by": user["_id"],
             "created_at": now,

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "divine-glazing-509302-n1",
+  "private_key_id": "6ef2a2be9a8e4c5e218ea9f0025b3338a6e15433",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDllWPt21ItBzv2\nQ6qkxoNcqockEWncxzc8FkBiY59Zq0d7gh6T55Ux91NkrSOx2Ioilc1o/rWIL8Gg\nRZ3cYJn9JT7jiejxnyVtAE8z8vHWcqD3bFICt3LIju9h/tVmGJYuFcyCuPOkcbv8\nfkOtqJWQzdyC/Yl+ip14SEvWrbjev+ZasuyhQV+D9cdIVUjmQJgijncw4b++h29V\nKofAWHIb7037+RMvjxFuykm6yJJnhqtwKBrpexVz+HOEOeqKWfjz2VqKnI4H6D9k\nAPLvpGnUrBo59LmHQlibTIDltw6nZxt5klolzshvgBsgabmfTEzRNN9pC3gtq69C\n/mFlBH21AgMBAAECggEAMiwm6cMJryX61Gt+xiJM8Goi/P6iOjm+KC87tFTNrQC5\nrzPlP1D3obMJgkG1QIdQTtUajhTF8sRvBfnY0SG6XWBvoTXRFsa/HNZZuMJh2An2\nhAPj20ygdNSJ24pfs/9xCJLCfhnxwvEJElm8rB2gzAO1KlpCm0krNy9jhX+zHFh9\nRFsjCqYZQ78Tau1gSabc9IC2fkEy2/Yyo3PHqIwLUvjpGxaslLHie15SvQcrJoRe\nV79PCn7VbNGLV7ySKF/UrcNNDbCEBV6nVHxla6fgHIEy/4NbNJgVyptYcBqQ/2pX\nH8kcsfZlJeBGRflYWDOrhZ5/ePXBByYBbAcd2OIgCQKBgQD1ZbSat+1JbMzn2S/1\n8CeUh2Xztem1L8ivsAGMikmbDnyj5uck/4cYiRPIozgNVMhaSkdkaBo5P2zGZpIk\neYEow7/K3vDamNy5xoUAnPuEil/vywk5xa0M/tWtBLaKrnKWNAi5ADSwjxIqYJfs\n/L3+CGkqZrf9n2p70WhsR+ko+QKBgQDvgMWmwEg5Sacki4eFhKtUwfuQdk4E3J0J\nMfY2PVez0UrSOlwXn2AKSNMoyEaerwpSKitcFlu6KllQAzmtzWziBAyNUNmoCnxR\nilh/wt1g9KNtj5MKLhV3CIi8pKv35Fuh1kLxBXHI5zo/8iEKEEgKOOzcuyD2NQ+4\nHW/6EuWFnQKBgCr6cxUd3WscqQ56FVJHi0cSJ6L1W0cmZUmP09WfaqDDesTh7d2m\n+ywq5dIf8/MxxB08ISDOsrkQCKb+092bgil3jyGixiAi4ZWP1T90PwDJk1/V+Xmq\ny1IZV6cDykyjnOH9nwF3rcK2bAIMBM+2vDe/lVudvd+niejBlj5Qod9RAoGATnUz\nyn2A62tqWrluqtmcOsbVPyzSQBt5QhLg4kHUIi70wMuncYGfN59FtT1ujPsweVwh\nGiik4eaPnXuBAKOkAKJs7jpHIxpUQW39sdTHKsTZaMG43IPeOkFMcefMAggH0Itd\nIJG1Bahh16LdGevdfaPKTEDs+lrFjH3wOc7I660CgYAeWiru4vpT1PRoTGZIVxgN\nJ4Lii9tf3+PaUihdBwlHrVjzWW2/DVKVIt0E3p52IX3nUuJiEOfmGYu7443bE6OE\n45qUzRW9HQ+JlFmhWAN4g5HXyTja2Iutz0TzT/R4rHckMSes0Medc3RhY4Z9XBTn\n3vKY4ag4il96PviJGZdaEA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "dikha-wilham@divine-glazing-509302-n1.iam.gserviceaccount.com",
+  "client_id": "102862905839945079127",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dikha-wilham%40divine-glazing-509302-n1.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

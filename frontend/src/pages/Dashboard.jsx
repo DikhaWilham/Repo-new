@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [progresMou, setProgresMou] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [sheetsConnected, setSheetsConnected] = useState(false);
   const [editing, setEditing] = useState(null);
   const [detail, setDetail] = useState(null);
   const [deleting, setDeleting] = useState(null);
@@ -74,6 +75,28 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  useEffect(() => {
+    api.get("/sheets/status").then(({ data }) => setSheetsConnected(!!data.configured && !data.error)).catch(() => {});
+  }, []);
+
+  const syncSheets = async () => {
+    try {
+      const { data: st } = await api.get("/sheets/status");
+      if (!st.configured) {
+        toast.error("Google Sheets belum terhubung. Hubungi admin untuk menghubungkan spreadsheet.");
+        return;
+      }
+      toast.info("Menyinkronkan dengan Google Sheets...");
+      const { data } = await api.post("/sheets/pull");
+      await api.post("/sheets/push");
+      toast.success(`Sync selesai: ${data.updated} diperbarui, ${data.created} ditambah dari Sheets`);
+      fetchDocs();
+      fetchStats();
+    } catch (err) {
+      toast.error(formatApiError(err));
+    }
+  };
 
   const refreshDetail = async (id) => {
     try {
@@ -212,6 +235,8 @@ export default function DashboardPage() {
           setProgresMou={setProgresMou}
           onExport={exportCSV}
           onImport={() => setImportOpen(true)}
+          onSyncSheets={syncSheets}
+          sheetsConnected={sheetsConnected}
           onAdd={() => { setEditing(null); setFormOpen(true); }}
           onReset={resetFilters}
         />

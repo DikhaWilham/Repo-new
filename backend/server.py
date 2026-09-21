@@ -21,6 +21,8 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from typing import Optional, List
+import asyncio
+import sheets_sync
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -360,6 +362,106 @@ async def reset_password(input: ResetPasswordInput):
     return {"message": "Kata sandi berhasil diperbarui"}
 
 
+# ---------- Google Sheets sync ----------
+
+def _schedule_sheets_push():
+    async def _run():
+        try:
+            docs = await db.lease_docs.find().to_list(5000)
+            await asyncio.to_thread(sheets_sync.push_all, docs)
+            logger.info("Sheets push OK")
+        except Exception as e:
+            logger.warning(f"Sheets push gagal: {e}")
+    try:
+        asyncio.get_running_loop().create_task(_run())
+    except RuntimeError:
+        pass
+
+
+class SheetConfigInput(BaseModel):
+    url: str
+
+
+@api_router.get("/sheets/status")
+async def sheets_status(user: dict = Depends(get_current_user)):
+    sid = sheets_sync.get_sheet_id()
+    if not sid:
+        return {"configured": False}
+    try:
+        info = await asyncio.to_thread(sheets_sync.sheet_info, sid)
+        return {"configured": True, **info}
+    except Exception as e:
+        return {"configured": True, "error": str(e)[:200]}
+
+
+@api_router.post("/sheets/config")
+async def sheets_config(input: SheetConfigInput, user: dict = Depends(get_current_user)):
+    sid = sheets_sync.extract_sheet_id(input.url)
+    if not sid:
+        raise HTTPException(status_code=400, detail="Link Google Sheets tidak valid")
+    try:
+        await asyncio.to_thread(sheets_sync.verify_access, sid)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Spreadsheet tidak dapat diakses. Pastikan sudah dibagikan (Editor) ke email service account.")
+    sheets_sync.set_sheet_id(sid)
+    _schedule_sheets_push()
+    return {"sheet_id": sid, "message": "Spreadsheet terhubung"}
+
+
+@api_router.post("/sheets/push")
+async def sheets_push(user: dict = Depends(get_current_user)):
+    docs = await db.lease_docs.find().to_list(5000)
+    try:
+        result = await asyncio.to_thread(sheets_sync.push_all, docs)
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Sheets push error: {e}")
+        raise HTTPException(status_code=502, detail="Gagal menulis ke Google Sheets")
+    return result
+
+
+@api_router.post("/sheets/pull")
+async def sheets_pull(user: dict = Depends(get_current_user)):
+    try:
+        rows = await asyncio.to_thread(sheets_sync.pull_all)
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Sheets pull error: {e}")
+        raise HTTPException(status_code=502, detail="Gagal membaca Google Sheets")
+    now = datetime.now(timezone.utc).isoformat()
+    created = updated = skipped = 0
+    for r in rows:
+        nama = str(r.get("Nama Counter", "")).strip()
+        if not nama:
+            skipped += 1
+            continue
+        data = sheets_sync.row_to_doc_fields(r)
+        doc_id = str(r.get("ID", "")).strip()
+        existing = None
+        if doc_id:
+            existing = await db.lease_docs.find_one({"_id": doc_id})
+        if not existing:
+            import re as _re
+            existing = await db.lease_docs.find_one({
+                "nama_counter": {"$regex": f"^{_re.escape(nama)}$", "$options": "i"},
+                "nama_brand": {"$regex": f"^{_re.escape(data['nama_brand'])}$", "$options": "i"},
+            })
+        if existing:
+            await db.lease_docs.update_one({"_id": existing["_id"]}, {"$set": {**data, "updated_at": now}})
+            updated += 1
+        else:
+            await db.lease_docs.insert_one({
+                "_id": str(uuid.uuid4()), **data, "attachments": [],
+                "created_by": user["_id"], "created_at": now, "updated_at": now,
+            })
+            created += 1
+    if created or updated:
+        _schedule_sheets_push()
+    return {"created": created, "updated": updated, "skipped": skipped}
+
+
 # ---------- Document endpoints ----------
 
 @api_router.get("/documents")
@@ -423,6 +525,7 @@ async def create_document(input: DocumentInput, user: dict = Depends(get_current
     doc.update({"_id": doc_id, "attachments": [], "created_by": user["_id"], "created_at": now, "updated_at": now})
     await db.lease_docs.insert_one(doc)
     created = await db.lease_docs.find_one({"_id": doc_id})
+    _schedule_sheets_push()
     return serialize_doc(created)
 
 
@@ -450,6 +553,7 @@ async def update_document(doc_id: str, input: DocumentInput, user: dict = Depend
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Dokumen tidak ditemukan")
     doc = await db.lease_docs.find_one({"_id": doc_id})
+    _schedule_sheets_push()
     return serialize_doc(doc)
 
 
@@ -458,6 +562,7 @@ async def delete_document(doc_id: str, user: dict = Depends(get_current_user)):
     result = await db.lease_docs.delete_one({"_id": doc_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Dokumen tidak ditemukan")
+    _schedule_sheets_push()
     return {"message": "Dokumen dihapus"}
 
 
@@ -623,6 +728,7 @@ async def import_documents(file: UploadFile = File(...), dry: bool = False, user
     if not dry and docs:
         await db.lease_docs.insert_many(docs)
         imported = len(docs)
+        _schedule_sheets_push()
     return {
         "total_rows": total,
         "valid": len(docs),

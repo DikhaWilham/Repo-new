@@ -1,10 +1,10 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, FileDown, Plus, RotateCcw, Upload } from "lucide-react";
+import { Search, FileDown, Plus, RotateCcw, Upload, RefreshCw } from "lucide-react";
 import { PROGRES_MOU_OPTIONS } from "@/lib/format";
 
-export default function Toolbar({ search, setSearch, skema, setSkema, status, setStatus, cv, setCv, cvList, progresMou, setProgresMou, onExport, onImport, onAdd, onReset }) {
+export default function Toolbar({ search, setSearch, skema, setSkema, status, setStatus, cv, setCv, cvList, progresMou, setProgresMou, onExport, onImport, onSyncSheets, sheetsConnected, onAdd, onReset }) {
   return (
     <div data-testid="filter-toolbar" className="flex flex-col gap-3 md:flex-row md:items-center">
       <div className="relative flex-1">
@@ -75,6 +75,16 @@ export default function Toolbar({ search, setSearch, skema, setSkema, status, se
         <Button data-testid="import-button" variant="outline" onClick={onImport} className="text-slate-600 hover:text-slate-900">
           <Upload className="mr-2 h-4 w-4" />
           Import
+        </Button>
+        <Button
+          data-testid="sync-sheets-button"
+          variant="outline"
+          onClick={onSyncSheets}
+          title={sheetsConnected ? "Sinkron dua arah dengan Google Sheets" : "Hubungkan Google Sheets"}
+          className={sheetsConnected ? "border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800" : "text-slate-400 hover:text-slate-600"}
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Sync Sheets
         </Button>
         <Button data-testid="add-document-button" onClick={onAdd} className="col-span-2 bg-slate-900 text-white hover:bg-slate-800 md:col-span-1">
           <Plus className="mr-2 h-4 w-4" />

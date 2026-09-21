@@ -56,6 +56,12 @@
 - Total akhir: **145 dokumen** (8 berstatus Proses MOU).
 - Script: /app/scripts/sync_from_excel.py
 - **Aktif**: sinkron dua arah Google Sheets (Sep 2026). Spreadsheet: "MONITORING MOU" (native Google Sheet, ID tersimpan di `/app/backend/sheets_config.json`, service account key di `/app/backend/.google_sa.json`). Modul: `/app/backend/sheets_sync.py`. Auto-push app→sheet pada setiap create/update/delete/import; tombol "Sync Sheets" di toolbar untuk pull sheet→app (upsert by ID, fallback nama counter+brand). Tab per entitas + LAINNYA. Terverifikasi: push 145 baris, edit di sheet masuk ke app, auto-push tambah/hapus berfungsi.
+
+## Kolom Kode & Rekonsiliasi File B (Sep 2026)
+- Field `kode` ditambahkan (tabel desktop, mobile, detail, form, export CSV, import mapping, sheet sync). 136 dokumen terisi kode dari MONITORING MOU B.xlsx via `/app/scripts/fill_kode_from_excel.py` — hanya mengisi field kosong, tanpa mengubah data/nama yang sudah ada.
+- Baris baru ditambahkan: Ht Batam/HAPPY TIME JUNIOR (DF), Ht Bontang/MINI TRAIN (CG). Duplikat hasil insert dibersihkan (Happy Time Sidoarjo → kode TL dipindah ke "Happy Time Lippo Sidoarjo"; "Manado Trade Center" duplikat dihapus karena = "Mtc Manado").
+- Funtopia Lombok sengaja TIDAK ditimpa (beda tanggal file vs app; pengguna melarang mengubah data yang sudah ada).
+- Total akhir: **147 dokumen**.
 - File: inbound341833393433663285.xlsx (9 sheet) — diimport via script `/app/scripts/import_user_sheet.py` + `import_remaining_brands.py`
 - Sheet diimport: CV MITRA, CV MULIA, PT MITRA, INTERN, SSP → **135 dokumen total** (124 + 11 konter multi-brand). Sheet ANALIST dilewati (duplikat 119/124), sheet Sertifikasi & BRAND bukan data sewa.
 - Kunci dedup: nama konter + brand. Reminder date default: 60 hari sebelum tanggal akhir. Detail skema & service charge bertingkat disimpan di Keterangan.

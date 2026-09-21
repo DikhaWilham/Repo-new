@@ -48,6 +48,7 @@ export default function DocTable({ docs, loading, onDetail, onEdit, onDelete }) 
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
+              <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500">Kode</th>
               <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500">Counter</th>
               <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500">Brand / CV</th>
               <th className="px-4 py-3 font-headline text-xs font-semibold uppercase tracking-wide text-slate-500">Skema</th>
@@ -64,6 +65,7 @@ export default function DocTable({ docs, loading, onDetail, onEdit, onDelete }) 
           <tbody>
             {docs.map((doc) => (
               <tr key={doc.id} data-testid={`doc-row-${doc.id}`} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60">
+                <td className="px-4 py-3 font-data text-xs font-semibold text-slate-700" data-testid={`kode-cell-${doc.id}`}>{doc.kode || "-"}</td>
                 <td className="px-4 py-3">
                   <p className="font-medium text-slate-900">{doc.nama_counter}</p>
                   <p className="max-w-[220px] truncate text-xs text-slate-500">{doc.alamat_counter}</p>
@@ -117,6 +119,7 @@ export default function DocTable({ docs, loading, onDetail, onEdit, onDelete }) 
             <div className="min-w-0 flex-1">
               <p className="truncate font-headline text-sm font-semibold text-slate-900">{doc.nama_counter}</p>
               <p className="truncate text-xs text-slate-500">
+                {doc.kode ? `${doc.kode} · ` : ""}
                 {doc.nama_brand}
                 {doc.nama_cv ? ` · ${doc.nama_cv}` : ""}
               </p>

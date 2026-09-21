@@ -13,7 +13,7 @@ ENTITY_TABS = ["CV MITRA", "CV MULIA", "PT MITRA", "INTERN", "SSP", "LAINNYA"]
 ENTITY_MAP = {"cv mitra": "CV MITRA", "cv mulia": "CV MULIA", "pt mitra": "PT MITRA", "intern": "INTERN", "ssp": "SSP"}
 
 HEADERS = [
-    "ID", "Nama Counter", "Alamat Counter", "Skema", "Nama Brand", "Nama CV/PT",
+    "ID", "Kode", "Nama Counter", "Alamat Counter", "Skema", "Nama Brand", "Nama CV/PT",
     "Luasan (m2)", "Service Charge (Rp)", "Promo Levy (Rp)",
     "Tanggal Mulai Sewa", "Tanggal Akhir Sewa", "Reminder Date",
     "Status", "Hari Tersisa", "Progres MOU", "Keterangan", "Terakhir Diupdate",
@@ -98,6 +98,7 @@ def _doc_to_row(d):
     status_label, days = _status_days(d.get("tanggal_akhir"))
     return [
         d.get("_id", ""),
+        d.get("kode", ""),
         d.get("nama_counter", ""),
         d.get("alamat_counter", ""),
         SKEMA_LABEL.get(d.get("skema", ""), d.get("skema", "")),
@@ -197,6 +198,7 @@ def row_to_doc_fields(r):
     else:
         progres = PROGRES_FROM_LABEL.get(progres_s, str(r.get("Progres MOU", "")).strip())
     return {
+        "kode": str(r.get("Kode", "")).strip(),
         "nama_counter": str(r.get("Nama Counter", "")).strip(),
         "alamat_counter": str(r.get("Alamat Counter", "")).strip(),
         "skema": skema,

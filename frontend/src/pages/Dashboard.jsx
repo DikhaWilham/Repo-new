@@ -163,13 +163,13 @@ export default function DashboardPage() {
       return;
     }
     const headers = [
-      "Nama Counter", "Alamat Counter", "Skema", "Nama Brand", "Nama CV",
+      "Kode", "Nama Counter", "Alamat Counter", "Skema", "Nama Brand", "Nama CV",
       "Luasan (m2)", "Service Charge (Rp)", "Promo Levy (Rp)",
       "Tanggal Mulai Sewa", "Tanggal Akhir Sewa", "Reminder Date",
       "Status", "Hari Tersisa", "Progres MOU", "Keterangan",
     ];
     const rows = docs.map((d) => [
-      d.nama_counter, d.alamat_counter, SKEMA_LABEL[d.skema], d.nama_brand, d.nama_cv,
+      d.kode || "", d.nama_counter, d.alamat_counter, SKEMA_LABEL[d.skema], d.nama_brand, d.nama_cv,
       d.luasan, d.service_charge, d.promo_levy,
       formatTanggal(d.tanggal_mulai), formatTanggal(d.tanggal_akhir), formatTanggal(d.reminder_date),
       STATUS_LABEL[d.status], d.hari_tersisa ?? "", PROGRES_MOU_LABEL[d.progres_mou] || d.progres_mou || "", d.keterangan || "",

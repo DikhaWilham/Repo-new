@@ -22,6 +22,7 @@ const EMPTY = {
   reminder_date: "",
   keterangan: "",
   progres_mou: "",
+  kode: "",
 };
 
 export default function DocForm({ open, onOpenChange, editing, onSave }) {
@@ -50,6 +51,7 @@ export default function DocForm({ open, onOpenChange, editing, onSave }) {
               reminder_date: editing.reminder_date || "",
               keterangan: editing.keterangan || "",
               progres_mou: editing.progres_mou || "",
+              kode: editing.kode || "",
             }
           : EMPTY
       );
@@ -100,9 +102,13 @@ export default function DocForm({ open, onOpenChange, editing, onSave }) {
           )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <Label htmlFor="nama_counter">Nama Counter *</Label>
               <Input id="nama_counter" data-testid="doc-form-nama-counter" required value={form.nama_counter} onChange={set("nama_counter")} placeholder="cth: Counter Chatime Grand Indonesia" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="kode">Kode</Label>
+              <Input id="kode" data-testid="doc-form-kode" value={form.kode} onChange={set("kode")} placeholder="cth: CK" />
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="alamat_counter">Alamat Counter *</Label>

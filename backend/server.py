@@ -166,6 +166,7 @@ class DocumentInput(BaseModel):
     reminder_date: Optional[str] = None
     keterangan: Optional[str] = ""
     progres_mou: Optional[str] = ""
+    kode: Optional[str] = ""
 
 
 # ---------- Status computation ----------
@@ -191,6 +192,7 @@ def serialize_doc(doc: dict) -> dict:
     attachments = [a for a in doc.get("attachments", []) if not a.get("is_deleted")]
     return {
         "id": doc["_id"],
+        "kode": doc.get("kode", ""),
         "nama_counter": doc["nama_counter"],
         "alamat_counter": doc["alamat_counter"],
         "skema": doc["skema"],
@@ -580,6 +582,7 @@ IMPORT_COLUMN_MAP = {
     "tanggal mulai sewa": "tanggal_mulai", "tanggal mulai": "tanggal_mulai", "mulai sewa": "tanggal_mulai",
     "tanggal akhir sewa": "tanggal_akhir", "tanggal akhir": "tanggal_akhir", "akhir sewa": "tanggal_akhir",
     "reminder date": "reminder_date", "reminder": "reminder_date",
+    "kode": "kode", "kode counter": "kode", "kode konter": "kode",
     "keterangan": "keterangan", "keterangan / update progres": "keterangan", "keterangan progres": "keterangan",
     "progres mou": "progres_mou", "progres": "progres_mou",
 }
@@ -705,6 +708,7 @@ async def import_documents(file: UploadFile = File(...), dry: bool = False, user
         progres = rec.get("progres_mou", "") or ("proses_mou" if not (mulai and akhir) else "")
         docs.append({
             "_id": str(uuid.uuid4()),
+            "kode": rec.get("kode", ""),
             "nama_counter": rec["nama_counter"],
             "alamat_counter": rec.get("alamat_counter", ""),
             "skema": skema,

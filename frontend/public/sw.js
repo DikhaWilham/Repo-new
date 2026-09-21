@@ -1,5 +1,5 @@
-/* Service Worker SewaKontrak Pro — cache shell statis, jaringan dulu untuk API */
-const CACHE_NAME = "sewakontrak-v1";
+/* Service Worker SewaKontrak Pro — network-first agar pembaruan selalu termuat, cache hanya cadangan offline */
+const CACHE_NAME = "sewakontrak-v2";
 const SHELL = ["/", "/index.html", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -24,16 +24,14 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then(
-      (cached) =>
-        cached ||
-        fetch(event.request).then((response) => {
-          if (response.ok && url.origin === self.location.origin) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-    )
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok && url.origin === self.location.origin) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

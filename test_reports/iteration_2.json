@@ -1,0 +1,24 @@
+{
+  "summary": "Iterasi 2: Verifikasi impor Excel MONITORING MOU B (148 dokumen) + skema schema baru + UI list disederhanakan. Backend pytest 16/16 pass. Frontend Playwright E2E semua alur pass: login, dashboard menampilkan Total Kontrak 148 dengan tabel hanya kolom No + Nama Konter + eye button, klik eye membuka detail lengkap, ADA BOGOR menampilkan kode ER/MR GAMES/PT MITRA/Bagi Hasil 72.5%-27.5%/Luasan 454 M²/Tgl awal 1 Jan 2026, HAPPY TIME PARAGON menampilkan Sewa Rp 142.500, form Hybrid menampilkan kedua input (bagi hasil & sewa) dan tersimpan dengan benar, edit keterangan ADA BOGOR persist lalu direvert, pencarian NAKAMURA -> 2 hasil, export CSV button tersedia, logout OK.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/repo-new/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py sekarang 933 baris — masih di atas ambang 700 baris, pertimbangkan split module (documents, sheets, auth, files, admin/import) untuk maintainability. (existing observation, low priority)",
+    "DocumentInput mengalami duplikasi ganda field yang beroverlap: `luasan` (float) vs `luasan_text` (string), `service_charge` (float) vs `service_charge_text` (string), `skema` vs `skema_detail`. Backward compatible tapi rawan drift — dokumentasikan atau konsolidasi (mis. `luasan_text` selalu diderive dari `luasan` di frontend saat save)",
+    "Frontend `DocForm.jsx` men-set `service_charge_text` = String(form.service_charge) tanpa format, sementara data hasil import berisi teks seperti 'Rp. 75.000 / Include Bagi Hasil'. Saat user edit form value, `service_charge` numeric hasil parse mungkin bukan angka murni (contoh nilai '/Include'), silent parseFloat->0 dapat meng-overwrite nilai numerik. Rekomendasi: hanya update `service_charge_text` tanpa auto-derive numeric jika input non-numeric.",
+    "Field `sisa_hari`/`hari_tersisa` di stats dan detail konsisten, namun `hampir_berakhir_list` di /api/documents/stats memasukkan status `reminder_3_bulan` juga (3 item saat count 1) — konvensi ini bekerja untuk banner UI tapi penamaan menyesatkan; pertimbangkan rename `upcoming_expiry_list`."
+  ],
+  "updated_files": ["/app/repo-new/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "100% (semua langkah E2E pass)"},
+  "test_credentials": "admin: dikhawilham77@gmail.com / SewaKontrak123!",
+  "seed_data_creation": "Test data TEST_HYB_<ts> dibuat lalu dihapus di dalam test. Data ADA BOGOR ke-edit sementara (TESTING EDIT E2E) lalu direvert ke '' (nilai awal).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Data Excel 148 dokumen sudah terimpor stabil (CV MITRA 93, CV MULIA 30, PT MITRA 14, INTERN 9, SSP 2). Backend tests di /app/repo-new/backend/tests/backend_test.py sekarang mencakup: schema baru (no/area_name/skema_detail/bagi_hasil_persen/sewa_rupiah/luasan_text/service_charge_text), ADA BOGOR & HAPPY TIME PARAGON spot check, hybrid CRUD, backward-compat CRUD, attachment flow, filter skema. Note: hampir_berakhir_list berisi status 'hampir_berakhir' + 'reminder_3_bulan' (bukan strict match count). Sheets sync & email password reset tetap tidak dikonfigurasi — skip.",
+  "rca of the issue": "N/A — tidak ada bug fungsional. Test suite iterasi sebelumnya (test_stats_seed dan test_list_and_filter) telah disesuaikan dengan data baru (assert Total>=148 vs 6, hapus assert Samsung yang tidak lagi ada, hapus strict-equal untuk hampir_berakhir_list)."
+}

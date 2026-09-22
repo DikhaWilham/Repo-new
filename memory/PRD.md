@@ -18,6 +18,10 @@ SewaKontrak Pro — monitoring dokumen sewa counter (mall/retail): masa sewa, re
 - 2026-09-22: Clone repo, install deps backend (fix litellm sha256 fragment) & frontend (yarn), .env backend+frontend
 - 2026-09-22: Konfigurasi EMERGENT_LLM_KEY + EMERGENT_EMAIL_KEY (universal key), FRONTEND_URL untuk CORS, ADMIN_EMAIL/ADMIN_PASSWORD (dikhawilham77@gmail.com / SewaKontrak123!)
 - 2026-09-22: Symlink swap supervisor, storage init OK, testing agent e2e PASS (backend 11/11, frontend 9/9): login, dashboard 6 docs, CRUD, register, logout
+- 2026-09-22: Import Excel "MONITORING MOU B.xlsx" → 148 dokumen (CV MITRA 93, CV MULIA 30, PT MITRA 14, INTERN 9, SSP 2); sheet ANALIST/Sertifikasi Air Coaster/Sertifikasi OSS & Area/BRAND di-skip; script: /app/repo-new/scripts/import_monitoring_mou.py
+- 2026-09-22: Schema diperluas (no, area_name, skema_detail, bagi_hasil_persen, sewa_rupiah, luasan_text, service_charge_text) — backward compatible
+- 2026-09-22: UI baru: halaman awal hanya daftar No + Nama Konter + ikon mata; klik mata → panel detail lengkap; form create/edit dengan input kondisional (Bagi Hasil → persen, Sewa → rupiah, Hybrid → keduanya); export CSV kolom baru
+- 2026-09-22: Testing iterasi 2 PASS (backend 16/16, frontend semua E2E pass)
 
 ## Belum Dikonfigurasi (Opsional)
 - Google Sheets sync: butuh service account JSON di /app/repo-new/backend/.google_sa.json (endpoint /api/sheets/* gracefully return configured=false)

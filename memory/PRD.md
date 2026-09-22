@@ -27,6 +27,9 @@ SewaKontrak Pro — monitoring dokumen sewa counter (mall/retail): masa sewa, re
 - 2026-09-22: Testing iterasi 3 PASS (backend 22/22 setelah fix data drift kode ADA BOGOR, frontend semua E2E pass)
 - 2026-09-22: Badge reminder "N hari lagi" tampil di sebelah nama konter di daftar depan — hanya untuk konter dalam masa reminder (amber ≤30 hari, emerald ≤90 hari), data-testid reminder-badge-{id}
 - 2026-09-22: Konter berakhir (status "berakhir") tampil paling atas daftar dengan badge merah "Berakhir N hari lalu"; urutan prioritas: berakhir → hampir_berakhir → reminder_3_bulan → aktif (masing-masing A-Z)
+- 2026-09-22: Promo Levy dihilangkan dari UI (detail, form, export CSV); field backend tetap ada untuk kompatibilitas
+- 2026-09-22: Nama konter duplikat di daftar depan diberi suffix area name dalam kurung (khusus yang sama), data-testid area-suffix-{id}
+- 2026-09-22: Konter tanpa tanggal sewa tampil di atas tepat di bawah grup reminder, dengan badge abu-abu "Tanggal sewa belum diisi" (data-testid nodate-badge-{id}); urutan: berakhir → hampir_berakhir → reminder_3_bulan → tanpa tanggal → aktif A-Z
 
 ## Belum Dikonfigurasi (Opsional)
 - Google Sheets sync: butuh service account JSON di /app/repo-new/backend/.google_sa.json (endpoint /api/sheets/* gracefully return configured=false)

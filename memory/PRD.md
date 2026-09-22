@@ -1,24 +1,29 @@
-# PRD — Import Project "Repo-new" (SewaKontrak Pro)
+# PRD — SewaKontrak Pro (Import dari Repo-new)
 
 ## Original Problem Statement
-Import project dari GitHub repository: https://github.com/DikhaWilham/Repo-new.git, branch main. Setup dan install semua dependencies-nya.
+Import project dari GitHub repository: https://github.com/DikhaWilham/Repo-new.git, branch main. Setup dan install semua dependencies-nya. Lanjutan: setup sampai 100% berjalan normal, konfigurasi EMERGENT_LLM_KEY, preview URL bisa diakses.
 
-## Status: Selesai (2026-09-22)
+## Tentang Aplikasi
+SewaKontrak Pro — monitoring dokumen sewa counter (mall/retail): masa sewa, reminder tanggal berakhir, service charge, promo levy, skema sewa/bagi hasil/hybrid. Stack: FastAPI + React 19 + MongoDB.
 
-## Yang Sudah Dilakukan
-- Clone repo branch `main` ke `/app/repo-new` (template Emergent di `/app/backend` & `/app/frontend` tetap utuh, sesuai pilihan user)
-- Repo awalnya private (404) → user mengubah visibility → clone berhasil
-- Backend: `pip install -r requirements.txt` sukses
-  - Fix: menghapus fragment `#sha256=` pada wheel `litellm` di requirements.txt yang menyebabkan ResolutionImpossible
-- Frontend: `yarn install` sukses, `yarn build` sukses (compile OK)
-- Dibuat `.env` backend (MONGO_URL, DB_NAME=repo_new, JWT_SECRET, FRONTEND_URL) dan `.env` frontend (REACT_APP_BACKEND_URL)
-- Smoke test: `import server` OK; uvicorn jalan dan `GET /api/` → 200 `{"message":"SewaKontrak Pro API"}`
+## Arsitektur Deployment
+- Source: /app/repo-new (clone branch main)
+- Symlink: /app/backend -> /app/repo-new/backend, /app/frontend -> /app/repo-new/frontend
+- Template asli dipindah ke /app/backend-template & /app/frontend-template
+- Supervisor (readonly config) tetap menunjuk /app/backend & /app/frontend
+- Preview URL: https://repo-sync-deploy-4.preview.emergentagent.com
+- DB: repo_new (MongoDB lokal), admin + 6 sample docs auto-seed saat startup
 
-## Catatan
-- Project tidak di-wire ke supervisor (supervisor masih menunjuk template `/app/backend` & `/app/frontend`), jadi app tidak auto-run di port 8001/3000
-- Startup backend menampilkan warning non-fatal: "Storage init failed" (butuh EMERGENT key untuk object storage integration)
-- Admin default dari kode: admin@example.com / admin123 (dapat dioverride via ADMIN_EMAIL/ADMIN_PASSWORD)
+## Yang Sudah Diimplementasikan
+- 2026-09-22: Clone repo, install deps backend (fix litellm sha256 fragment) & frontend (yarn), .env backend+frontend
+- 2026-09-22: Konfigurasi EMERGENT_LLM_KEY + EMERGENT_EMAIL_KEY (universal key), FRONTEND_URL untuk CORS, ADMIN_EMAIL/ADMIN_PASSWORD (dikhawilham77@gmail.com / SewaKontrak123!)
+- 2026-09-22: Symlink swap supervisor, storage init OK, testing agent e2e PASS (backend 11/11, frontend 9/9): login, dashboard 6 docs, CRUD, register, logout
 
-## Next Action Items
-- [ ] Jika ingin app berjalan via supervisor: update konfigurasi supervisor agar menunjuk `/app/repo-new/backend` & `/app/repo-new/frontend`
-- [ ] Konfigurasi EMERGENT_LLM_KEY bila fitur LLM/object storage/email dibutuhkan
+## Belum Dikonfigurasi (Opsional)
+- Google Sheets sync: butuh service account JSON di /app/repo-new/backend/.google_sa.json (endpoint /api/sheets/* gracefully return configured=false)
+- Email password reset: memakai universal key sebagai EMERGENT_EMAIL_KEY, belum terverifikasi end-to-end
+
+## Backlog
+- P1: Google Sheets sync (butuh kredensial service account dari user)
+- P2: Verifikasi email password reset end-to-end
+- P2: Refactor server.py (918 baris) ke modul terpisah bila app berkembang

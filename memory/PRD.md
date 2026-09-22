@@ -30,6 +30,8 @@ SewaKontrak Pro — monitoring dokumen sewa counter (mall/retail): masa sewa, re
 - 2026-09-22: Promo Levy dihilangkan dari UI (detail, form, export CSV); field backend tetap ada untuk kompatibilitas
 - 2026-09-22: Nama konter duplikat di daftar depan diberi suffix area name dalam kurung (khusus yang sama), data-testid area-suffix-{id}
 - 2026-09-22: Konter tanpa tanggal sewa tampil di atas tepat di bawah grup reminder, dengan badge abu-abu "Tanggal sewa belum diisi" (data-testid nodate-badge-{id}); urutan: berakhir → hampir_berakhir → reminder_3_bulan → tanpa tanggal → aktif A-Z
+- 2026-09-22: Sinkronisasi Google Sheets dua arah (mekanisme): push otomatis App→Sheets pada setiap perubahan + poller pull Sheets→App tiap 20 dtk (no-op detection via SYNC_FIELDS) + dialog koneksi (unggah Service Account JSON + link sheet) + endpoint /sheets/service-account. STATUS: MENUNGGU Service Account JSON valid dari user (SA lama invalid → Invalid JWT Signature, sudah direset). Kolom sheet diselaraskan dgn data terbaru (No, Area Name, Bagi Hasil/Sewa, Luasan, Service Charge, tanpa Promo Levy)
+- 2026-09-22: Fix cross-device auto-update (bug user: edit di Laptop tidak muncul di HP): Dashboard polling silent tiap 20 dtk + refresh saat visibilitychange/focus. Tervalidasi testing agent iterasi 4 (dua browser context, frontend 5/5, backend 34/34 setelah test sort diperbarui ke urutan prioritas terbaru)
 
 ## Belum Dikonfigurasi (Opsional)
 - Google Sheets sync: butuh service account JSON di /app/repo-new/backend/.google_sa.json (endpoint /api/sheets/* gracefully return configured=false)

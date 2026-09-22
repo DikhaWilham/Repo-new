@@ -1,0 +1,36 @@
+{
+  "summary": "Iterasi 4: Verifikasi fix cross-device auto-update pada Dashboard.jsx (polling 20s + visibilitychange/focus refresh). Frontend: dua browser context terpisah (context A 1280x800 = 'Laptop', context B 390x844 = 'HP'), login admin di keduanya, edit dokumen ANEKA JAYA MANGKANG lewat PUT /api/documents/{id} dari satu context, mendengar semua request via page.on('request') di context lain. Hasil: (1) polling A->B — GET /documents & /documents/stats muncul di B pada detik 17.8 (dalam window 25s) tanpa interaksi apapun; (2) visibilitychange->visible — refresh langsung dalam 0.5s (docs+stats); (3) window focus event — refresh langsung dalam <0.1s; (4) reverse B->A — GET /documents di detik 3.5 dan 23.5; (5) silent refresh — tidak ada skeleton/animate-pulse yang muncul selama 22s pemantauan MutationObserver; (6) marker keterangan tersinkron di kedua context (server truth). Backend: pytest 33/34 pass; 1 failure pre-existing (test_list_sort_reminder_first — data drift, tidak berkaitan dengan fix polling ini). Tidak ada dokumen uji tertinggal — keterangan ANEKA JAYA MANGKANG dikembalikan ke nilai semula 'Dibiarkan saja'.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/documents (sort)", "issue": "test_list_sort_reminder_first fail: satu atau lebih dokumen reminder muncul setelah non-reminder — kemungkinan data drift (dokumen dengan status reminder yang tanggal_akhir/reminder_date-nya sudah berubah dari iterasi sebelumnya). Bukan regresi dari fix polling ini."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: investigasi test_list_sort_reminder_first (bukan blocker, kemungkinan data drift; tambahkan reset dataset atau seed dokumen reminder untuk tes deterministik)."
+  ],
+  "critical_code_review_comments": [
+    "Dashboard.jsx polling & focus handler dependency array = [fetchDocs, fetchStats]; setiap perubahan filter/search akan clear+setInterval baru — perilaku aman tapi timer ter-reset saat user mengetik search. Tidak masalah karena silent, tapi bisa dipertimbangkan menyimpan callback via ref untuk mempertahankan interval stabil.",
+    "visibilitychange listener menggunakan callback yang sama untuk hidden->visible dan visible->hidden; sudah difilter dengan document.visibilityState === 'visible' — benar.",
+    "Silent refresh tidak menampilkan toast error saat gagal; ini disengaja dan sudah didokumentasikan di kode.",
+    "server.py masih 1058 baris — sudah lama disarankan split module; low priority.",
+    "PUT /documents/{id} tetap non-partial (menggunakan DocumentInput full model), sehingga bug data drift pada field `kode` yang disebut iterasi 3 masih berpotensi terjadi jika frontend DocForm tidak mem-populate semua field."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "97.1% (33/34)", "frontend": "100% (5/5 cross-device sync checks pass)"},
+  "test_credentials": "admin: dikhawilham77@gmail.com / SewaKontrak123!",
+  "seed_data_creation": "Tidak ada. Test menggunakan dokumen existing ANEKA JAYA MANGKANG (id 9220b3ec-267e-46e8-8138-eb7531795aad) dan mengembalikan keterangan ke nilai asli 'Dibiarkan saja' setelah tes selesai. Tidak ada TEST_* documents dibuat.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Fix polling cross-device (Dashboard.jsx setInterval 20s + visibilitychange/focus) TERVALIDASI end-to-end via network sniffing di dua browser context. Approach yang bekerja: page.on('request') untuk menangkap XHR axios (fetch spy tidak menangkap axios karena axios pakai XMLHttpRequest di browser). Skema DocumentInput: nama_counter+skema required, skema harus salah satu dari sewa/bagi_hasil/hybrid (bukan 'sewa_saja'). Untuk simulasi visibilitychange gunakan Object.defineProperty(document,'visibilityState',{get:()=>'visible'}) sebelum dispatch event. Google Sheets sync tidak dites (belum punya kredensial valid — sesuai instruksi). Test suite backend_test.py belum diubah; ada 1 test flaky/data-drift (test_list_sort_reminder_first) yang perlu dilihat main agent tapi bukan blocker.",
+  "rca of the issue": "Bug asli user (edit di Laptop tidak muncul di HP tanpa refresh manual) TERATASI oleh fix Dashboard.jsx: (a) setInterval 20000ms memanggil fetchDocs(true)+fetchStats() — memastikan max stale ≤20s; (b) visibilitychange + window focus listener memanggil refresh instant saat user kembali ke tab/PWA — memastikan latency ~0 saat re-focus. Tervalidasi: dalam 25s tanpa interaksi, docs list di context lain otomatis GET /documents (silent, tanpa spinner/skeleton)."
+}

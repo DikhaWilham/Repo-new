@@ -22,6 +22,9 @@ SewaKontrak Pro — monitoring dokumen sewa counter (mall/retail): masa sewa, re
 - 2026-09-22: Schema diperluas (no, area_name, skema_detail, bagi_hasil_persen, sewa_rupiah, luasan_text, service_charge_text) — backward compatible
 - 2026-09-22: UI baru: halaman awal hanya daftar No + Nama Konter + ikon mata; klik mata → panel detail lengkap; form create/edit dengan input kondisional (Bagi Hasil → persen, Sewa → rupiah, Hybrid → keduanya); export CSV kolom baru
 - 2026-09-22: Testing iterasi 2 PASS (backend 16/16, frontend semua E2E pass)
+- 2026-09-22: Sorting daftar konter: reminder (hampir_berakhir/reminder_3_bulan) paling atas, lalu abjad A-Z, nomor urut 1..N dari atas
+- 2026-09-22: Sinkronisasi otomatis App → Excel: endpoint GET /api/documents/export-excel selalu generate xlsx fresh dari DB (5 sheet per CV, kolom sama seperti Excel asli + SISA HARI) + tombol "Export Excel" di toolbar. User menolak setup Google Sheets → sync Sheets→App via tombol Import bila perlu
+- 2026-09-22: Testing iterasi 3 PASS (backend 22/22 setelah fix data drift kode ADA BOGOR, frontend semua E2E pass)
 
 ## Belum Dikonfigurasi (Opsional)
 - Google Sheets sync: butuh service account JSON di /app/repo-new/backend/.google_sa.json (endpoint /api/sheets/* gracefully return configured=false)

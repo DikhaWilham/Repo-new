@@ -1,0 +1,39 @@
+{
+  "summary": "Iterasi 3: Verifikasi (1) sort reminder-first lalu abjad A-Z pada list konter, (2) tombol Export Excel di toolbar + endpoint GET /api/documents/export-excel yang selalu fresh dari DB, (3) sinkronisasi otomatis edit -> export. Backend pytest 21/22 pass (1 failure pre-existing: kode ADA BOGOR sekarang kosong di DB, bukan 'ER' - data drift dari iterasi lalu). Frontend Playwright E2E semua alur pass: login OK; 148 baris terender; top 3 = ANEKA JAYA BANDUNGREJO, GRIYA DERWATI, SEMAR TAWANG MANGU; nomor urut 1..148; baris 4-6 = ADA BOGOR, ADA SILIWANGI, AJ BATANG (A-Z lanjut); tombol Export Excel mengunduh file MONITORING-MOU-terkini-<tanggal>.xlsx (20KB); filter status 'Hampir Berakhir' -> 1 baris; klik mata membuka DialogContent; search NAKAMURA -> 2 hasil.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/documents (ADA BOGOR)", "issue": "Field 'kode' pada dokumen ADA BOGOR sekarang string kosong (sebelumnya 'ER' saat impor Excel MONITORING MOU B). Data drift yang menyebabkan test_ada_bogor_detail lama gagal. Bukan regresi dari iterasi 3 (sort/export). Perlu investigasi apakah data telah diedit lewat UI atau parser kode diubah."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Detail modal (Radix Dialog)", "issues": ["Console warning: Missing `Description` atau `aria-describedby={undefined}` untuk DialogContent — a11y warning ringan, tambahkan <DialogDescription>."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Investigasi kenapa `kode` ADA BOGOR menjadi '' (bukan 'ER'). Cek apakah PUT dari frontend menimpa field kode dengan string kosong jika field tidak dikirim di payload. Ini pre-existing di iterasi ini tapi mengindikasikan possible partial-update bug.",
+    "Optional: tambah <DialogDescription> di DocDetail modal untuk meredam warning a11y Radix."
+  ],
+  "critical_code_review_comments": [
+    "Endpoint GET /documents/export-excel dideklarasikan sebelum GET /documents/{doc_id} — routing benar. Requires-auth (401 kalau tanpa cookie) tervalidasi.",
+    "Sort di list_documents ditrigger setelah filter query DB tapi SEBELUM filter status. Karena status dihitung Python-side dari tanggal, filter status masih bekerja dengan urutan baru — tervalidasi (Hampir Berakhir -> 1 row, tetap A-Z).",
+    "_format_rp dan _skema_cell sudah menangani fallback yang benar. Baris export untuk 148 dokumen tersebar di 5 sheet sesuai nama_cv (CV MITRA/CV MULIA/PT MITRA/INTERN/SSP). CV baru akan masuk sheet terpisah karena fallback groups.setdefault.",
+    "DocForm PUT dari frontend perlu ditinjau — payload lengkap dikirim, jadi kalau UI tidak mem-populate `kode` di form state, edit apapun via UI akan mengosongkan `kode`. Ini kemungkinan besar RCA data drift ADA BOGOR.",
+    "server.py sudah 1001 baris — pertimbangkan split module (documents, sheets, auth, files, admin/import) untuk maintainability."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "95.5% (21/22)", "frontend": "100% (semua langkah E2E pass)"},
+  "test_credentials": "admin: dikhawilham77@gmail.com / SewaKontrak123!",
+  "seed_data_creation": "test_export_excel_reflects_edit mem-mark keterangan sebuah CV MITRA lalu revert. test_export_excel_includes_new_doc buat TEST_EXPORT_<hex> lalu delete. test_hybrid_crud/backward_compat/attachment_flow tetap membuat & menghapus TEST_ prefixed data. Tidak ada data uji yang tertinggal.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iterasi 3 pass — sort reminder-first + export-excel siap. 1 test lama (test_ada_bogor_detail assert kode=='ER') failing karena data drift; jika iterasi berikutnya menguji field kode, verifikasi state DB dulu. Test suite backend_test.py sekarang 22 test, di /app/backend/tests/. Google Sheets sync tidak dikonfigurasi — skip. Export Excel selalu fresh generate dari DB, tervalidasi lewat edit->re-export dan create->re-export.",
+  "rca of the issue": "test_ada_bogor_detail failure: field `kode` ADA BOGOR di DB sekarang '' (bukan 'ER'). Reproduksi: GET /api/documents?search=ADA BOGOR menampilkan kode=''. Hipotesis: PUT dari frontend edit form menimpa `kode` jika DocForm.jsx tidak mem-populate field ini pada state (payload dikirim lengkap dengan kode='' default). Mitigasi: (a) frontend selalu populate semua field saat edit; atau (b) backend endpoint PUT gunakan partial update (exclude_unset) sehingga field yang tidak dikirim tidak menimpa DB. Bukan blocker iterasi 3."
+}

@@ -262,3 +262,111 @@ def test_logout(admin):
     assert r.status_code == 200
     r = s.get(f"{API}/auth/me", timeout=30)
     assert r.status_code == 401
+
+
+
+# ---------- Monthly Recap ----------
+def test_monthly_recap_admin_aggregation(admin, employee):
+    """2026-06: Budi (270m/4.5h) + E2E Karyawan (150m/2.5h) => 7 Jam."""
+    emp_id = employee["user"]["id"]
+    # create second employee
+    other_email = f"e2e_recap_{int(time.time())}@x.com"
+    r = admin.post(f"{API}/employees", json={
+        "name": "E2E Karyawan", "email": other_email, "password": "pwpwpwpw",
+    }, timeout=30)
+    assert r.status_code == 200, r.text
+    other_id = r.json()["id"]
+
+    # Budi: 4h30m
+    r1 = admin.post(f"{API}/overtime", json={
+        "employee_id": emp_id, "date": "2026-06-10",
+        "start_time": "17:00", "end_time": "21:30",
+    }, timeout=30)
+    assert r1.status_code == 200
+    # override employee_name to Budi Santoso for assertion match? use whatever seed already has
+    ot1 = r1.json()["id"]
+    # E2E: 2h30m
+    r2 = admin.post(f"{API}/overtime", json={
+        "employee_id": other_id, "date": "2026-06-11",
+        "start_time": "18:00", "end_time": "20:30",
+    }, timeout=30)
+    assert r2.status_code == 200
+    ot2 = r2.json()["id"]
+
+    try:
+        r = admin.get(f"{API}/overtime/monthly-recap", params={"month": "2026-06"}, timeout=30)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["month"] == "2026-06"
+        # sorted desc by total_minutes: first Budi 270, then E2E 150
+        emps = {e["employee_id"]: e for e in body["employees"]}
+        assert emp_id in emps
+        assert other_id in emps
+        assert emps[emp_id]["total_minutes"] >= 270
+        assert emps[other_id]["total_minutes"] == 150
+        assert emps[other_id]["total_label"] == "2 Jam 30 Menit"
+        assert emps[other_id]["total_hours"] == 2.5
+        # ordering: first entry has highest minutes
+        assert body["employees"][0]["total_minutes"] >= body["employees"][-1]["total_minutes"]
+        # counts
+        assert emps[other_id]["count"] == 1
+        assert emps[other_id]["with_photo"] == 0
+        assert body["total_records"] >= 2
+        assert body["total_employees"] >= 2
+        assert body["grand_total_minutes"] >= 420
+    finally:
+        admin.delete(f"{API}/overtime/{ot1}", timeout=30)
+        admin.delete(f"{API}/overtime/{ot2}", timeout=30)
+        admin.delete(f"{API}/employees/{other_id}", timeout=30)
+
+
+def test_monthly_recap_default_current_month(admin):
+    r = admin.get(f"{API}/overtime/monthly-recap", timeout=30)
+    assert r.status_code == 200
+    body = r.json()
+    from datetime import datetime, timezone
+    assert body["month"] == datetime.now(timezone.utc).strftime("%Y-%m")
+
+
+def test_monthly_recap_empty_month(admin):
+    r = admin.get(f"{API}/overtime/monthly-recap", params={"month": "1999-01"}, timeout=30)
+    assert r.status_code == 200
+    body = r.json()
+    assert body["employees"] == []
+    assert body["total_records"] == 0
+    assert body["total_employees"] == 0
+    assert body["grand_total_minutes"] == 0
+
+
+def test_monthly_recap_employee_scope(admin, employee):
+    """Non-admin only sees own aggregation."""
+    emp_id = employee["user"]["id"]
+    # create OT for employee
+    r1 = admin.post(f"{API}/overtime", json={
+        "employee_id": emp_id, "date": "2026-07-05",
+        "start_time": "17:00", "end_time": "19:00",
+    }, timeout=30)
+    ot1 = r1.json()["id"]
+    # create OT for another employee
+    other_email = f"e2e_scope_{int(time.time())}@x.com"
+    r = admin.post(f"{API}/employees", json={
+        "name": "Other Scope", "email": other_email, "password": "pwpwpwpw",
+    }, timeout=30)
+    other_id = r.json()["id"]
+    r2 = admin.post(f"{API}/overtime", json={
+        "employee_id": other_id, "date": "2026-07-06",
+        "start_time": "17:00", "end_time": "20:00",
+    }, timeout=30)
+    ot2 = r2.json()["id"]
+
+    try:
+        r = employee["session"].get(f"{API}/overtime/monthly-recap", params={"month": "2026-07"}, timeout=30)
+        assert r.status_code == 200
+        body = r.json()
+        ids = {e["employee_id"] for e in body["employees"]}
+        assert other_id not in ids, "employee must not see other employees' aggregation"
+        assert emp_id in ids
+    finally:
+        admin.delete(f"{API}/overtime/{ot1}", timeout=30)
+        admin.delete(f"{API}/overtime/{ot2}", timeout=30)
+        admin.delete(f"{API}/employees/{other_id}", timeout=30)

@@ -77,7 +77,7 @@ export default function OvertimeAddModal({ open, onClose, employees, onSaved }) 
           <div className="flex items-center gap-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 px-4 py-3">
             <Clock className="h-4 w-4 text-blue-600" />
             <span className="text-sm text-slate-600 dark:text-slate-300">Total Lembur:</span>
-            <span className="text-sm font-semibold font-mono text-blue-700 dark:text-blue-400">{minutesToLabel(totalMin)}</span>
+            <span className="text-sm font-semibold font-mono text-blue-700 dark:text-blue-400" data-testid="badge-calculated-total-time">{minutesToLabel(totalMin)}</span>
           </div>
 
           <div className="space-y-2">

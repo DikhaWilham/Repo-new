@@ -542,6 +542,51 @@ async def download_file(path: str, request: Request, auth: Optional[str] = Query
 
 
 # ---------------------------------------------------------------------------
+# Monthly recap per employee
+# ---------------------------------------------------------------------------
+@api_router.get("/overtime/monthly-recap")
+async def monthly_recap(user: dict = Depends(get_current_user), month: Optional[str] = Query(None)):
+    """Total overtime per employee for a given month (YYYY-MM). Defaults to current month."""
+    now = datetime.now(timezone.utc)
+    target = month if month and len(month) == 7 else now.strftime("%Y-%m")
+    query = {"date": {"$regex": f"^{target}"}}
+    if user.get("role") != "admin":
+        query["employee_id"] = str(user["_id"])
+    docs = await db.overtime.find(query).to_list(5000)
+
+    by_employee = {}
+    for d in docs:
+        emp_id = d.get("employee_id", "")
+        entry = by_employee.setdefault(emp_id, {"employee_name": d.get("employee_name", ""), "total_minutes": 0, "count": 0, "with_photo": 0})
+        entry["total_minutes"] += d.get("total_minutes", 0)
+        entry["count"] += 1
+        if d.get("photo_path"):
+            entry["with_photo"] += 1
+
+    employees = [
+        {
+            "employee_id": emp_id,
+            "employee_name": e["employee_name"],
+            "total_minutes": e["total_minutes"],
+            "total_hours": round(e["total_minutes"] / 60, 1),
+            "total_label": format_total(e["total_minutes"]),
+            "count": e["count"],
+            "with_photo": e["with_photo"],
+        }
+        for emp_id, e in by_employee.items()
+    ]
+    employees.sort(key=lambda x: x["total_minutes"], reverse=True)
+    return {
+        "month": target,
+        "employees": employees,
+        "grand_total_minutes": sum(e["total_minutes"] for e in employees),
+        "grand_total_label": format_total(sum(e["total_minutes"] for e in employees)),
+        "total_employees": len(employees),
+        "total_records": len(docs),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Stats & Export
 # ---------------------------------------------------------------------------
 @api_router.get("/stats")

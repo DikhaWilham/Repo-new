@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { formatDate } from "@/lib/overtime";
 import HeaderNav from "@/components/HeaderNav";
 import StatsCards from "@/components/StatsCards";
+import MonthlyRecap from "@/components/MonthlyRecap";
 import OvertimeEditModal from "@/components/OvertimeEditModal";
 import OvertimeAddModal from "@/components/OvertimeAddModal";
 import EmployeeManagementSheet from "@/components/EmployeeManagementSheet";
@@ -126,6 +127,8 @@ export default function Dashboard() {
         </div>
 
         <StatsCards stats={stats} />
+
+        {isAdmin && <MonthlyRecap />}
 
         {/* Filter bar */}
         <div className="flex flex-col lg:flex-row lg:items-end gap-3 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">

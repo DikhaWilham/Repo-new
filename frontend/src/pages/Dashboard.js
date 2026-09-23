@@ -5,6 +5,7 @@ import { formatDate } from "@/lib/overtime";
 import HeaderNav from "@/components/HeaderNav";
 import StatsCards from "@/components/StatsCards";
 import MonthlyRecap from "@/components/MonthlyRecap";
+import AttendanceCard from "@/components/AttendanceCard";
 import OvertimeEditModal from "@/components/OvertimeEditModal";
 import OvertimeAddModal from "@/components/OvertimeAddModal";
 import EmployeeManagementSheet from "@/components/EmployeeManagementSheet";
@@ -15,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Search, FileSpreadsheet, FileDown, FileText, Pencil, Trash2, Camera, ImageOff, Loader2, Filter } from "lucide-react";
+import { Plus, Search, FileSpreadsheet, FileDown, FileText, Pencil, Trash2, Camera, ImageOff, Loader2, Filter, MapPin } from "lucide-react";
 
 export default function Dashboard() {
   const { user, isAdmin } = useAuth();
@@ -96,6 +97,35 @@ export default function Dashboard() {
 
   const canEdit = (rec) => isAdmin || rec.employee_id === user.id;
 
+  const PhotoCell = ({ rec }) => {
+    if (!rec.photo_path && !rec.photo_end_path) return <StatusBadge rec={rec} />;
+    return (
+      <div className="flex gap-1">
+        {rec.photo_path && (
+          <button onClick={() => setPhoto({ url: `${API}/files/${rec.photo_path}`, name: `${rec.employee_name} (Masuk)` })} data-testid={`img-photo-proof-${rec.id}`}>
+            <img src={`${API}/files/${rec.photo_path}`} alt="foto masuk" className="h-10 w-10 rounded-md object-cover border border-slate-200 dark:border-slate-700 hover:ring-2 ring-blue-500 transition" />
+          </button>
+        )}
+        {rec.photo_end_path && (
+          <button onClick={() => setPhoto({ url: `${API}/files/${rec.photo_end_path}`, name: `${rec.employee_name} (Pulang)` })} data-testid={`img-photo-end-${rec.id}`}>
+            <img src={`${API}/files/${rec.photo_end_path}`} alt="foto pulang" className="h-10 w-10 rounded-md object-cover border border-emerald-300 dark:border-emerald-700 hover:ring-2 ring-emerald-500 transition" />
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const LocationCell = ({ rec }) => (
+    <div className="flex items-center gap-1.5">
+      <span className="truncate">{rec.location || "-"}</span>
+      {rec.gps_start_lat != null && (
+        <a href={`https://www.google.com/maps?q=${rec.gps_start_lat},${rec.gps_start_lng}`} target="_blank" rel="noopener noreferrer" title="Lihat lokasi GPS absen" data-testid={`link-gps-${rec.id}`}>
+          <MapPin className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+        </a>
+      )}
+    </div>
+  );
+
   const StatusBadge = ({ rec }) =>
     rec.photo_path ? (
       <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 gap-1">
@@ -128,6 +158,7 @@ export default function Dashboard() {
 
         <StatsCards stats={stats} />
 
+        {!isAdmin && <AttendanceCard user={user} onChanged={loadData} />}
         {isAdmin && <MonthlyRecap />}
 
         {/* Filter bar */}
@@ -206,16 +237,10 @@ export default function Dashboard() {
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className="text-sm font-semibold font-mono text-blue-700 dark:text-blue-400">{rec.total_label}</span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 max-w-[160px] truncate">{rec.location || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 max-w-[160px]"><LocationCell rec={rec} /></td>
                         <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 max-w-[200px] truncate">{rec.note || "-"}</td>
                         <td className="px-4 py-3">
-                          {rec.photo_path ? (
-                            <button onClick={() => setPhoto({ url: `${API}/files/${rec.photo_path}`, name: rec.employee_name })} data-testid={`img-photo-proof-${rec.id}`}>
-                              <img src={`${API}/files/${rec.photo_path}`} alt="foto" className="h-10 w-10 rounded-md object-cover border border-slate-200 dark:border-slate-700 hover:ring-2 ring-blue-500 transition" />
-                            </button>
-                          ) : (
-                            <StatusBadge rec={rec} />
-                          )}
+                          <PhotoCell rec={rec} />
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1">
@@ -252,18 +277,11 @@ export default function Dashboard() {
                   <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
                     <div><span className="text-xs text-slate-400 block">Mulai</span><span className="font-mono text-slate-700 dark:text-slate-200">{rec.start_time}</span></div>
                     <div><span className="text-xs text-slate-400 block">Akhir</span><span className="font-mono text-slate-700 dark:text-slate-200">{rec.end_time}</span></div>
-                    <div className="col-span-2"><span className="text-xs text-slate-400 block">Lokasi / Hari</span><span className="text-slate-700 dark:text-slate-200">{rec.location || "-"}</span></div>
+                    <div className="col-span-2"><span className="text-xs text-slate-400 block">Lokasi / Hari</span><LocationCell rec={rec} /></div>
                     <div className="col-span-2"><span className="text-xs text-slate-400 block">Keterangan</span><span className="text-slate-700 dark:text-slate-200">{rec.note || "-"}</span></div>
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    {rec.photo_path ? (
-                      <button onClick={() => setPhoto({ url: `${API}/files/${rec.photo_path}`, name: rec.employee_name })} className="flex items-center gap-2" data-testid={`img-photo-proof-${rec.id}`}>
-                        <img src={`${API}/files/${rec.photo_path}`} alt="foto" className="h-10 w-10 rounded-md object-cover border border-slate-200 dark:border-slate-700" />
-                        <span className="text-xs text-blue-600">Lihat foto</span>
-                      </button>
-                    ) : (
-                      <StatusBadge rec={rec} />
-                    )}
+                    <PhotoCell rec={rec} />
                     <div className="flex gap-1">
                       {canEdit(rec) && (
                         <Button variant="outline" size="sm" onClick={() => setEditRecord(rec)} className="gap-1" data-testid={`btn-edit-overtime-${rec.id}`}>

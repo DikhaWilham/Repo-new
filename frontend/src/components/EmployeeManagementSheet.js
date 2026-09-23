@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Plus, Pencil, Trash2, UserPlus } from "lucide-react";
 
-const emptyForm = { name: "", email: "", password: "", nip: "", jabatan: "", active: true };
+const emptyForm = { name: "", jabatan: "", active: true };
 
 export default function EmployeeManagementSheet({ open, onClose, onChanged }) {
   const [employees, setEmployees] = useState([]);
@@ -42,22 +42,19 @@ export default function EmployeeManagementSheet({ open, onClose, onChanged }) {
     setEditing("new");
   };
   const openEdit = (emp) => {
-    setForm({ name: emp.name, email: emp.email, password: "", nip: emp.nip || "", jabatan: emp.jabatan || "", active: emp.active });
+    setForm({ name: emp.name, jabatan: emp.jabatan || "", active: emp.active });
     setEditing(emp);
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.email) return toast.error("Nama & email wajib diisi");
-    if (editing === "new" && !form.password) return toast.error("Password wajib diisi untuk karyawan baru");
+    if (!form.name) return toast.error("Nama wajib diisi");
     setSaving(true);
     try {
       if (editing === "new") {
         await api.post("/employees", form);
         toast.success("Karyawan ditambahkan");
       } else {
-        const payload = { ...form };
-        if (!payload.password) delete payload.password;
-        await api.put(`/employees/${editing.id}`, payload);
+        await api.put(`/employees/${editing.id}`, form);
         toast.success("Data karyawan diperbarui");
       }
       setEditing(null);
@@ -107,7 +104,6 @@ export default function EmployeeManagementSheet({ open, onClose, onChanged }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{emp.name}</p>
-                    <p className="text-xs text-slate-500 truncate">{emp.email}</p>
                     <div className="flex items-center gap-2 mt-1">
                       {emp.jabatan && <span className="text-[11px] text-slate-400">{emp.jabatan}</span>}
                       <Badge variant="outline" className={emp.active ? "text-emerald-600 border-emerald-200" : "text-slate-400 border-slate-200"}>
@@ -137,23 +133,9 @@ export default function EmployeeManagementSheet({ open, onClose, onChanged }) {
               <Label>Nama Lengkap</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} data-testid="input-employee-name" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>NIP</Label>
-                <Input value={form.nip} onChange={(e) => setForm({ ...form, nip: e.target.value })} data-testid="input-employee-nip" />
-              </div>
-              <div className="space-y-2">
-                <Label>Jabatan</Label>
-                <Input value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} data-testid="input-employee-jabatan" />
-              </div>
-            </div>
             <div className="space-y-2">
-              <Label>Email</Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} data-testid="input-employee-email" />
-            </div>
-            <div className="space-y-2">
-              <Label>Password {editing !== "new" && <span className="text-xs text-slate-400">(kosongkan jika tidak diubah)</span>}</Label>
-              <Input type="text" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••••" data-testid="input-employee-password" />
+              <Label>Jabatan</Label>
+              <Input value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} data-testid="input-employee-jabatan" />
             </div>
             <div className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-2">
               <Label className="cursor-pointer">Status Aktif</Label>

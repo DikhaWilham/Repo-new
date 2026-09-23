@@ -25,6 +25,12 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  const loginEmployee = async (employeeId) => {
+    const { data } = await api.post("/auth/employee-login", { employee_id: employeeId });
+    setUser(data);
+    return data;
+  };
+
   const logout = async () => {
     try {
       await api.post("/auth/logout");
@@ -35,7 +41,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, isAdmin: user && user.role === "admin" }}>
+    <AuthContext.Provider value={{ user, setUser, login, loginEmployee, logout, isAdmin: user && user.role === "admin" }}>
       {children}
     </AuthContext.Provider>
   );

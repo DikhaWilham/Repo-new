@@ -16,7 +16,7 @@ import jwt
 import requests
 import pandas as pd
 from bson import ObjectId
-from fastapi import FastAPI, APIRouter, Request, Response, HTTPException, Depends, UploadFile, File, Query
+from fastapi import FastAPI, APIRouter, Request, Response, HTTPException, Depends, UploadFile, File, Query, Form
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -42,6 +42,7 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 JWT_ALGORITHM = "HS256"
+WIB = timezone(timedelta(hours=7))
 
 # ---------------------------------------------------------------------------
 # Object storage
@@ -93,20 +94,18 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 class EmployeeCreate(BaseModel):
     name: str
-    email: EmailStr
-    password: str
-    nip: Optional[str] = ""
     jabatan: Optional[str] = ""
     active: bool = True
 
 
 class EmployeeUpdate(BaseModel):
     name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-    nip: Optional[str] = None
     jabatan: Optional[str] = None
     active: Optional[bool] = None
+
+
+class EmployeeLoginInput(BaseModel):
+    employee_id: str
 
 
 class OvertimeCreate(BaseModel):
@@ -171,7 +170,6 @@ def public_user(user: dict) -> dict:
         "email": user["email"],
         "name": user.get("name", ""),
         "role": user.get("role", "employee"),
-        "nip": user.get("nip", ""),
         "jabatan": user.get("jabatan", ""),
         "active": user.get("active", True),
     }
@@ -269,6 +267,12 @@ def serialize_overtime(doc: dict) -> dict:
         "location": doc.get("location", ""),
         "note": doc.get("note", ""),
         "photo_path": doc.get("photo_path"),
+        "photo_end_path": doc.get("photo_end_path"),
+        "gps_start_lat": doc.get("gps_start_lat"),
+        "gps_start_lng": doc.get("gps_start_lng"),
+        "gps_end_lat": doc.get("gps_end_lat"),
+        "gps_end_lng": doc.get("gps_end_lng"),
+        "source": doc.get("source", "manual"),
         "created_at": doc.get("created_at", ""),
         "updated_at": doc.get("updated_at", ""),
     }
@@ -327,8 +331,29 @@ async def refresh(request: Request, response: Response):
 
 
 # ---------------------------------------------------------------------------
-# Employee endpoints (admin managed)
+# Employee login (name-only) & employees
 # ---------------------------------------------------------------------------
+@api_router.get("/auth/employee-options")
+async def employee_options():
+    docs = await db.users.find({"role": "employee", "active": True}).sort("name", 1).to_list(1000)
+    return [{"id": str(d["_id"]), "name": d.get("name", "")} for d in docs]
+
+
+@api_router.post("/auth/employee-login")
+async def employee_login(payload: EmployeeLoginInput, response: Response):
+    try:
+        user = await db.users.find_one({"_id": ObjectId(payload.employee_id), "role": "employee"})
+    except Exception:
+        raise HTTPException(status_code=400, detail="ID karyawan tidak valid")
+    if not user:
+        raise HTTPException(status_code=404, detail="Karyawan tidak ditemukan")
+    if not user.get("active", True):
+        raise HTTPException(status_code=403, detail="Akun tidak aktif. Hubungi admin.")
+    ver = user.get("token_version", 0)
+    set_auth_cookies(response, create_access_token(str(user["_id"]), user.get("email", ""), ver), create_refresh_token(str(user["_id"]), ver))
+    return public_user(user)
+
+
 @api_router.get("/employees")
 async def list_employees(user: dict = Depends(get_current_user)):
     docs = await db.users.find({"role": "employee"}).sort("name", 1).to_list(1000)
@@ -337,15 +362,11 @@ async def list_employees(user: dict = Depends(get_current_user)):
 
 @api_router.post("/employees")
 async def create_employee(payload: EmployeeCreate, admin: dict = Depends(require_admin)):
-    email = payload.email.lower().strip()
-    if await db.users.find_one({"email": email}):
-        raise HTTPException(status_code=400, detail="Email sudah terdaftar")
     doc = {
-        "email": email,
-        "password_hash": hash_password(payload.password),
+        "email": f"emp_{uuid.uuid4().hex[:12]}@lembur.local",
+        "password_hash": hash_password(uuid.uuid4().hex),
         "name": payload.name,
         "role": "employee",
-        "nip": payload.nip or "",
         "jabatan": payload.jabatan or "",
         "active": payload.active,
         "token_version": 0,
@@ -364,21 +385,10 @@ async def update_employee(emp_id: str, payload: EmployeeUpdate, admin: dict = De
     updates = {}
     if payload.name is not None:
         updates["name"] = payload.name
-    if payload.email is not None:
-        new_email = payload.email.lower().strip()
-        existing = await db.users.find_one({"email": new_email, "_id": {"$ne": ObjectId(emp_id)}})
-        if existing:
-            raise HTTPException(status_code=400, detail="Email sudah terdaftar")
-        updates["email"] = new_email
-    if payload.nip is not None:
-        updates["nip"] = payload.nip
     if payload.jabatan is not None:
         updates["jabatan"] = payload.jabatan
     if payload.active is not None:
         updates["active"] = payload.active
-    if payload.password:
-        updates["password_hash"] = hash_password(payload.password)
-        updates["token_version"] = user.get("token_version", 0) + 1
     if updates:
         await db.users.update_one({"_id": ObjectId(emp_id)}, {"$set": updates})
     if "name" in updates:
@@ -499,20 +509,17 @@ async def delete_overtime(ot_id: str, admin: dict = Depends(require_admin)):
     return {"message": "Data lembur dihapus"}
 
 
-@api_router.post("/overtime/{ot_id}/photo")
-async def upload_photo(ot_id: str, file: UploadFile = File(...), user: dict = Depends(get_current_user)):
-    ot = await db.overtime.find_one({"_id": ObjectId(ot_id)})
-    if not ot:
-        raise HTTPException(status_code=404, detail="Data lembur tidak ditemukan")
-    if user.get("role") != "admin" and ot.get("employee_id") != str(user["_id"]):
-        raise HTTPException(status_code=403, detail="Anda hanya dapat mengupload foto lembur milik sendiri")
+# ---------------------------------------------------------------------------
+# Photo helper + attendance (real-time absen masuk/pulang)
+# ---------------------------------------------------------------------------
+async def save_photo(user_id: str, file: UploadFile) -> str:
     ext = (file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg").lower()
     if ext not in MIME_TYPES:
         raise HTTPException(status_code=400, detail="Format foto harus JPG, PNG, WEBP, atau GIF")
     data = await file.read()
     if len(data) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Ukuran foto maksimal 10MB")
-    path = f"{APP_NAME}/uploads/{ot.get('employee_id')}/{uuid.uuid4()}.{ext}"
+    path = f"{APP_NAME}/uploads/{user_id}/{uuid.uuid4()}.{ext}"
     content_type = file.content_type or MIME_TYPES[ext]
     result = put_object(path, data, content_type)
     stored = result["path"]
@@ -523,8 +530,103 @@ async def upload_photo(ot_id: str, file: UploadFile = File(...), user: dict = De
         "is_deleted": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
+    return stored
+
+
+@api_router.post("/overtime/{ot_id}/photo")
+async def upload_photo(ot_id: str, file: UploadFile = File(...), user: dict = Depends(get_current_user)):
+    ot = await db.overtime.find_one({"_id": ObjectId(ot_id)})
+    if not ot:
+        raise HTTPException(status_code=404, detail="Data lembur tidak ditemukan")
+    if user.get("role") != "admin" and ot.get("employee_id") != str(user["_id"]):
+        raise HTTPException(status_code=403, detail="Anda hanya dapat mengupload foto lembur milik sendiri")
+    stored = await save_photo(ot.get("employee_id"), file)
     await db.overtime.update_one({"_id": ObjectId(ot_id)}, {"$set": {"photo_path": stored, "updated_at": datetime.now(timezone.utc).isoformat()}})
     fresh = await db.overtime.find_one({"_id": ObjectId(ot_id)})
+    return serialize_overtime(fresh)
+
+
+@api_router.get("/attendance/today")
+async def attendance_today(user: dict = Depends(get_current_user)):
+    today = datetime.now(WIB).strftime("%Y-%m-%d")
+    doc = await db.overtime.find_one({"employee_id": str(user["_id"]), "date": today})
+    return serialize_overtime(doc) if doc else None
+
+
+@api_router.post("/attendance/masuk")
+async def absen_masuk(
+    lat: Optional[float] = Form(None),
+    lng: Optional[float] = Form(None),
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    now = datetime.now(WIB)
+    today = now.strftime("%Y-%m-%d")
+    hm = now.strftime("%H:%M")
+    uid = str(user["_id"])
+    existing = await db.overtime.find_one({"employee_id": uid, "date": today})
+    if existing and existing.get("start_time"):
+        raise HTTPException(status_code=400, detail=f"Anda sudah absen masuk hari ini pukul {existing['start_time']}")
+    stored = await save_photo(uid, file)
+    if existing:
+        end = existing.get("end_time") or hm
+        await db.overtime.update_one({"_id": existing["_id"]}, {"$set": {
+            "start_time": hm, "photo_path": stored,
+            "gps_start_lat": lat, "gps_start_lng": lng, "source": "absen",
+            "total_minutes": calc_total_minutes(hm, end),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }})
+        fresh = await db.overtime.find_one({"_id": existing["_id"]})
+    else:
+        doc = {
+            "employee_id": uid,
+            "employee_name": user.get("name", ""),
+            "date": today,
+            "start_time": hm,
+            "end_time": "",
+            "total_minutes": 0,
+            "location": "",
+            "note": "",
+            "photo_path": stored,
+            "photo_end_path": None,
+            "gps_start_lat": lat,
+            "gps_start_lng": lng,
+            "gps_end_lat": None,
+            "gps_end_lng": None,
+            "source": "absen",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        res = await db.overtime.insert_one(doc)
+        doc["_id"] = res.inserted_id
+        fresh = doc
+    return serialize_overtime(fresh)
+
+
+@api_router.post("/attendance/pulang")
+async def absen_pulang(
+    lat: Optional[float] = Form(None),
+    lng: Optional[float] = Form(None),
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    now = datetime.now(WIB)
+    today = now.strftime("%Y-%m-%d")
+    hm = now.strftime("%H:%M")
+    uid = str(user["_id"])
+    existing = await db.overtime.find_one({"employee_id": uid, "date": today})
+    if not existing or not existing.get("start_time"):
+        raise HTTPException(status_code=400, detail="Anda belum absen masuk hari ini")
+    if existing.get("end_time"):
+        raise HTTPException(status_code=400, detail=f"Anda sudah absen pulang hari ini pukul {existing['end_time']}")
+    stored = await save_photo(uid, file)
+    await db.overtime.update_one({"_id": existing["_id"]}, {"$set": {
+        "end_time": hm, "photo_end_path": stored,
+        "gps_end_lat": lat, "gps_end_lng": lng,
+        "total_minutes": calc_total_minutes(existing["start_time"], hm),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }})
+    fresh = await db.overtime.find_one({"_id": existing["_id"]})
     return serialize_overtime(fresh)
 
 

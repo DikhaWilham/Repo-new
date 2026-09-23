@@ -1,0 +1,28 @@
+{
+  "summary": "Full backend + frontend regression for schema v2 (employees have no NIP/email/password, name-only login) plus new real-time attendance (absen masuk/pulang with photo + GPS). Rewrote backend_test.py from scratch to reflect new schema: 21/21 pytest cases PASS. Frontend Playwright verified: (a) Login page shows Karyawan/Admin tabs; Karyawan tab lists 3 seeded names via GET /api/auth/employee-options and logs in without password. (b) Andi Pratama logged in successfully, saw AttendanceCard, performed Absen Masuk with a PNG upload (input-photo-masuk via set_input_files, capture=environment attribute preserved), server recorded start_time (WIB) 15:49 and stored gps_start_lat/lng from context.set_geolocation; link-gps-masuk visible and links to Google Maps. Absen Pulang flow same: end_time recorded, photo_end_path stored, gps_end_lat/lng set, text-total-today rendered ('0 Menit' because start==end in same second is expected in test). Toast 'Absen pulang tercatat dengan lokasi GPS' shown. (c) Employee does NOT see 'Tambah Lembur' admin controls. (d) Admin login works via tab-login-admin; attendance-card NOT rendered for admin (correct). monthly-recap card visible for admin. Table shows img-photo-proof-{id} and img-photo-end-{id} (both cells clickable). (e) EmployeeManagementSheet simplified: input-employee-name, input-employee-jabatan, switch-employee-active, btn-save-employee — no email/password/NIP inputs exist. Created a new employee via UI, it appears in the list immediately. Backend edge cases verified: duplicate absen masuk returns 400; absen pulang before masuk returns 400; absen without GPS still succeeds (lat/lng null); employee-login with invalid ObjectId string returns 400, with non-existent OID returns 404; /auth/employee-options is public (no cookie) and only exposes {id,name}.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "auto-generated employee email 'emp_<hex>@lembur.local' cannot collide with unique index in normal flow, but if an admin later manually sets a duplicate email via /employees update path it would silently fail; consider removing 'email' from EmployeeUpdate entirely since it is now server-managed.",
+    "attendance/masuk allows overwriting a previously created 'manual' overtime row for same date (branch `if existing:`); today the 400 check only triggers when existing.start_time exists — this is intentional per the manual seeding scenario but worth documenting.",
+    "get_current_user uses ObjectId(payload['sub']) without try/except — if the JWT sub becomes non-ObjectId (e.g., legacy), it would raise 500 instead of 401. Wrap in try/except InvalidId.",
+    "monthly_recap 'target' fallback only checks len(month)==7 — malformed 'AAAA-BB' still passes and is silently treated as empty result. A 400 would be more explicit."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin dikhawilham77@gmail.com / admin123. Employees (name-only login): Andi Pratama, Budi Santoso, Siti Rahma.",
+  "seed_data_creation": "Playwright test performed absen masuk & pulang for Andi Pratama today (2026-01-XX WIB); this row remains in DB. Budi Santoso already had absen row today from manual pre-verification. Extra UI_Test employee created during admin UI test was cleaned up. Pytest ephemeral employees are self-cleaned via fixture teardown.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All new features work end-to-end. Key selectors: tab-login-employee/tab-login-admin, select-employee-login + option-employee-{id}, input-photo-masuk/input-photo-pulang (use page.set_input_files, DO NOT try to open real camera), text-masuk-time / text-pulang-time / text-total-today, link-gps-masuk / link-gps-pulang, img-photo-proof-{id} / img-photo-end-{id}, input-employee-name/jabatan, switch-employee-active, btn-save-employee. Grant geolocation via context.grant_permissions + context.set_geolocation. When testing today's absen for a specific employee, first check /api/attendance/today (employees who already absented today will get 400 on duplicate).",
+  "rca of the issue": "N/A - no bugs found"
+}

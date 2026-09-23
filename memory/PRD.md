@@ -32,6 +32,8 @@ Aplikasi rekap lembur karyawan kantor (Bahasa Indonesia), bisa dibuka di HP & PC
 - Tested: backend 15/15 pytest pass, frontend all flows pass (iteration_1).
 - [x] Rekap Bulanan: endpoint /api/overtime/monthly-recap + kartu grafik bar per karyawan (recharts), summary total jam/karyawan/rekap, selector 12 bulan, admin-only — 2026-06. Tested pass (iteration_2).
 - [x] Export PDF siap cetak (reportlab, landscape A4, tabel zebra, foto lembur tersemat hingga 40, baris TOTAL, info periode & waktu cetak) via GET /api/overtime/export?fmt=pdf — 2026-06. Diverifikasi render PDF visual.
+- [x] Penyederhanaan data karyawan: hapus NIP/email/password — admin cukup isi Nama, Jabatan, Status Aktif; karyawan login cukup pilih nama (tanpa password) via /api/auth/employee-login; admin tetap email+password — 2026-06
+- [x] Absensi real-time: tombol Absen Masuk & Absen Pulang dengan foto kamera wajib (capture), jam otomatis tercatat WIB (UTC+7), GPS otomatis tercatat, link Google Maps di tabel; foto masuk & pulang tampil di rekap; penolakan absen ganda — 2026-06
 
 ## Backlog / Remaining
 - P2: Ganti native date input dengan shadcn Calendar untuk lokal ID.

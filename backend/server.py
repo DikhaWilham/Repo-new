@@ -21,6 +21,12 @@ from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, BeforeValidator, ConfigDict, EmailStr
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.units import cm
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.utils import ImageReader
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image as RLImage
 
 # ---------------------------------------------------------------------------
 # Setup
@@ -654,6 +660,71 @@ async def export_overtime(
         buf = io.StringIO()
         df.to_csv(buf, index=False)
         return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv", headers={"Content-Disposition": f"attachment; filename=rekap_lembur_{stamp}.csv"})
+    if fmt == "pdf":
+        buf = io.BytesIO()
+        styles = getSampleStyleSheet()
+        cell = ParagraphStyle("cell", parent=styles["Normal"], fontSize=8, leading=10)
+        cell_c = ParagraphStyle("cellc", parent=cell, alignment=1)
+        head = ParagraphStyle("head", parent=cell, textColor=colors.white, fontName="Helvetica-Bold")
+        bold = ParagraphStyle("bold", parent=cell, fontName="Helvetica-Bold")
+        bold_c = ParagraphStyle("boldc", parent=bold, alignment=1)
+
+        elements = []
+        elements.append(Paragraph("Rekap Lembur Karyawan", ParagraphStyle("title2", parent=styles["Title"], fontSize=16, fontName="Helvetica-Bold")))
+        info_parts = []
+        if date_from or date_to:
+            info_parts.append(f"Periode: {date_from or '...'} s/d {date_to or '...'}")
+        info_parts.append(f"Dicetak: {datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')} UTC")
+        elements.append(Paragraph(" &middot; ".join(info_parts), ParagraphStyle("meta", parent=styles["Normal"], fontSize=9, textColor=colors.HexColor("#64748B"))))
+        elements.append(Spacer(1, 0.35 * cm))
+
+        data_rows = [[Paragraph(h, head) for h in ["No", "Nama Karyawan", "Tanggal", "Mulai", "Akhir", "Total", "Lokasi / Hari", "Keterangan", "Foto"]]]
+        photo_count = 0
+        for i, d in enumerate(docs, 1):
+            photo_cell = Paragraph("-", cell_c)
+            if d.get("photo_path") and photo_count < 40:
+                try:
+                    img_bytes, _ = get_object(d["photo_path"])
+                    iw, ih = ImageReader(io.BytesIO(img_bytes)).getSize()
+                    w, h = 2.2 * cm, (2.2 * cm * ih / iw if iw else 1.6 * cm)
+                    if h > 2.2 * cm:
+                        h = 2.2 * cm
+                        w = h * iw / ih
+                    photo_cell = RLImage(io.BytesIO(img_bytes), width=w, height=h)
+                    photo_count += 1
+                except Exception as e:
+                    logger.warning(f"PDF photo skipped: {e}")
+            data_rows.append([
+                Paragraph(str(i), cell_c),
+                Paragraph(str(d.get("employee_name", "")), cell),
+                Paragraph(str(d.get("date", "")), cell_c),
+                Paragraph(str(d.get("start_time", "")), cell_c),
+                Paragraph(str(d.get("end_time", "")), cell_c),
+                Paragraph(format_total(d.get("total_minutes", 0)), cell_c),
+                Paragraph(str(d.get("location", "") or "-"), cell),
+                Paragraph(str(d.get("note", "") or "-"), cell),
+                photo_cell,
+            ])
+        total_all = sum(d.get("total_minutes", 0) for d in docs)
+        data_rows.append(["", Paragraph("TOTAL", bold), "", "", "", Paragraph(format_total(total_all), bold_c), Paragraph(f"{len(docs)} rekap", bold_c), "", ""])
+
+        table = Table(data_rows, colWidths=[0.9*cm, 3.2*cm, 2.4*cm, 1.5*cm, 1.5*cm, 2.6*cm, 3.6*cm, 6.2*cm, 2.6*cm], repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F172A")),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#F8FAFC")]),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#E2E8F0")),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ]))
+        elements.append(table)
+        doc_pdf = SimpleDocTemplate(buf, pagesize=landscape(A4), leftMargin=1.2*cm, rightMargin=1.2*cm, topMargin=1.4*cm, bottomMargin=1.2*cm)
+        doc_pdf.build(elements)
+        buf.seek(0)
+        return StreamingResponse(buf, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=rekap_lembur_{stamp}.pdf"})
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Rekap Lembur")

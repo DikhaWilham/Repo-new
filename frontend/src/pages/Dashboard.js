@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Search, FileSpreadsheet, FileDown, Pencil, Trash2, Camera, ImageOff, Loader2, Filter } from "lucide-react";
+import { Plus, Search, FileSpreadsheet, FileDown, FileText, Pencil, Trash2, Camera, ImageOff, Loader2, Filter } from "lucide-react";
 
 export default function Dashboard() {
   const { user, isAdmin } = useAuth();
@@ -85,10 +85,10 @@ export default function Dashboard() {
       const url = URL.createObjectURL(data);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `rekap_lembur.${fmt === "csv" ? "csv" : "xlsx"}`;
+      a.download = `rekap_lembur.${fmt === "csv" ? "csv" : fmt === "pdf" ? "pdf" : "xlsx"}`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(`Berhasil mengunduh ${fmt === "csv" ? "CSV" : "Excel"}`);
+      toast.success(`Berhasil mengunduh ${fmt === "csv" ? "CSV" : fmt === "pdf" ? "PDF" : "Excel"}`);
     } catch (e) {
       toast.error("Gagal mengekspor data");
     }
@@ -168,6 +168,9 @@ export default function Dashboard() {
             </Button>
             <Button variant="outline" onClick={() => handleExport("csv")} className="gap-2" data-testid="btn-export-csv">
               <FileDown className="h-4 w-4 text-blue-600" /> <span className="hidden sm:inline">CSV</span>
+            </Button>
+            <Button variant="outline" onClick={() => handleExport("pdf")} className="gap-2" data-testid="btn-export-pdf">
+              <FileText className="h-4 w-4 text-red-600" /> <span className="hidden sm:inline">PDF</span>
             </Button>
           </div>
         </div>

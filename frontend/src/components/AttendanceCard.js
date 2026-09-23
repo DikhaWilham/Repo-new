@@ -76,8 +76,8 @@ export default function AttendanceCard({ user, onChanged }) {
           <Clock className="h-4 w-4 text-emerald-600" />
         </div>
         <div>
-          <h2 className="text-lg font-heading font-semibold tracking-tight text-slate-800 dark:text-slate-100">Absen Lembur Hari Ini</h2>
-          <p className="text-xs text-slate-500">Foto diambil langsung dari kamera, jam & lokasi GPS tercatat otomatis</p>
+          <h2 className="text-lg font-heading font-semibold tracking-tight text-slate-800 dark:text-slate-100">Absensi Hari Ini</h2>
+          <p className="text-xs text-slate-500">Jam kerja 08:30–16:30 · di luar itu otomatis terhitung lembur · foto kamera & GPS tercatat</p>
         </div>
       </div>
 
@@ -111,10 +111,16 @@ export default function AttendanceCard({ user, onChanged }) {
           </div>
 
           {pulangDone && (
-            <div className="flex items-center gap-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 px-4 py-3">
-              <CheckCircle2 className="h-4 w-4 text-blue-600" />
-              <span className="text-sm text-slate-600 dark:text-slate-300">Total Lembur Hari Ini:</span>
-              <span className="text-sm font-semibold font-mono text-blue-700 dark:text-blue-400" data-testid="text-total-today">{today.total_label}</span>
+            <div className="rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 px-4 py-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                <span className="text-sm text-slate-600 dark:text-slate-300">Total Hari Ini:</span>
+                <span className="text-sm font-semibold font-mono text-slate-800 dark:text-slate-100" data-testid="text-total-today">{today.total_label}</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" data-testid="badge-work-today">Jam Kerja: {today.work_label}</span>
+                <span className="text-xs font-semibold px-2 py-1 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300" data-testid="badge-overtime-today">Lembur: {today.overtime_label}</span>
+              </div>
             </div>
           )}
 

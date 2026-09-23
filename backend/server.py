@@ -244,6 +244,22 @@ def calc_total_minutes(start: str, end: str) -> int:
         return 0
 
 
+WORK_START_MIN = 8 * 60 + 30   # 08:30
+WORK_END_MIN = 16 * 60 + 30    # 16:30
+
+
+def calc_split(start: str, end: str):
+    """Pecah durasi jadi (jam_kerja_menit, lembur_menit). Di luar 08:30-16:30 = lembur."""
+    total = calc_total_minutes(start, end)
+    if not start or not end or total == 0:
+        return 0, 0
+    sh, sm = map(int, start.split(":"))
+    start_min = sh * 60 + sm
+    end_min = start_min + total
+    work = max(0, min(end_min, WORK_END_MIN) - max(start_min, WORK_START_MIN))
+    return work, total - work
+
+
 def format_total(minutes: int) -> str:
     h = minutes // 60
     m = minutes % 60
@@ -255,6 +271,7 @@ def format_total(minutes: int) -> str:
 
 
 def serialize_overtime(doc: dict) -> dict:
+    work_min, ot_min = calc_split(doc.get("start_time", ""), doc.get("end_time", "")) if doc.get("end_time") else (0, 0)
     return {
         "id": str(doc["_id"]),
         "employee_id": doc.get("employee_id", ""),
@@ -264,6 +281,10 @@ def serialize_overtime(doc: dict) -> dict:
         "end_time": doc.get("end_time", ""),
         "total_minutes": doc.get("total_minutes", 0),
         "total_label": format_total(doc.get("total_minutes", 0)),
+        "work_minutes": work_min,
+        "overtime_minutes": ot_min,
+        "work_label": format_total(work_min),
+        "overtime_label": format_total(ot_min),
         "location": doc.get("location", ""),
         "note": doc.get("note", ""),
         "photo_path": doc.get("photo_path"),
@@ -665,8 +686,10 @@ async def monthly_recap(user: dict = Depends(get_current_user), month: Optional[
     by_employee = {}
     for d in docs:
         emp_id = d.get("employee_id", "")
-        entry = by_employee.setdefault(emp_id, {"employee_name": d.get("employee_name", ""), "total_minutes": 0, "count": 0, "with_photo": 0})
+        entry = by_employee.setdefault(emp_id, {"employee_name": d.get("employee_name", ""), "total_minutes": 0, "overtime_minutes": 0, "count": 0, "with_photo": 0})
         entry["total_minutes"] += d.get("total_minutes", 0)
+        _, ot = calc_split(d.get("start_time", ""), d.get("end_time", ""))
+        entry["overtime_minutes"] += ot
         entry["count"] += 1
         if d.get("photo_path"):
             entry["with_photo"] += 1
@@ -678,6 +701,8 @@ async def monthly_recap(user: dict = Depends(get_current_user), month: Optional[
             "total_minutes": e["total_minutes"],
             "total_hours": round(e["total_minutes"] / 60, 1),
             "total_label": format_total(e["total_minutes"]),
+            "overtime_minutes": e["overtime_minutes"],
+            "overtime_label": format_total(e["overtime_minutes"]),
             "count": e["count"],
             "with_photo": e["with_photo"],
         }
@@ -689,6 +714,7 @@ async def monthly_recap(user: dict = Depends(get_current_user), month: Optional[
         "employees": employees,
         "grand_total_minutes": sum(e["total_minutes"] for e in employees),
         "grand_total_label": format_total(sum(e["total_minutes"] for e in employees)),
+        "grand_overtime_label": format_total(sum(e["overtime_minutes"] for e in employees)),
         "total_employees": len(employees),
         "total_records": len(docs),
     }
@@ -745,18 +771,21 @@ async def export_overtime(
     docs = await db.overtime.find(query).sort("date", -1).to_list(5000)
     rows = []
     for i, d in enumerate(docs, 1):
+        work, ot = calc_split(d.get("start_time", ""), d.get("end_time", ""))
         rows.append({
             "No": i,
             "Nama Karyawan": d.get("employee_name", ""),
             "Tanggal Lembur": d.get("date", ""),
             "Jam Mulai": d.get("start_time", ""),
             "Jam Akhir": d.get("end_time", ""),
-            "Total Lembur": format_total(d.get("total_minutes", 0)),
+            "Total Waktu": format_total(d.get("total_minutes", 0)),
+            "Jam Kerja (08:30-16:30)": format_total(work),
+            "Lembur": format_total(ot),
             "Lokasi / Hari": d.get("location", ""),
             "Keterangan": d.get("note", ""),
             "Ada Foto": "Ya" if d.get("photo_path") else "Tidak",
         })
-    df = pd.DataFrame(rows, columns=["No", "Nama Karyawan", "Tanggal Lembur", "Jam Mulai", "Jam Akhir", "Total Lembur", "Lokasi / Hari", "Keterangan", "Ada Foto"])
+    df = pd.DataFrame(rows, columns=["No", "Nama Karyawan", "Tanggal Lembur", "Jam Mulai", "Jam Akhir", "Total Waktu", "Jam Kerja (08:30-16:30)", "Lembur", "Lokasi / Hari", "Keterangan", "Ada Foto"])
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
     if fmt == "csv":
         buf = io.StringIO()
@@ -780,7 +809,7 @@ async def export_overtime(
         elements.append(Paragraph(" &middot; ".join(info_parts), ParagraphStyle("meta", parent=styles["Normal"], fontSize=9, textColor=colors.HexColor("#64748B"))))
         elements.append(Spacer(1, 0.35 * cm))
 
-        data_rows = [[Paragraph(h, head) for h in ["No", "Nama Karyawan", "Tanggal", "Mulai", "Akhir", "Total", "Lokasi / Hari", "Keterangan", "Foto"]]]
+        data_rows = [[Paragraph(h, head) for h in ["No", "Nama Karyawan", "Tanggal", "Mulai", "Akhir", "Total", "Kerja", "Lembur", "Lokasi / Hari", "Keterangan", "Foto"]]]
         photo_count = 0
         for i, d in enumerate(docs, 1):
             photo_cell = Paragraph("-", cell_c)
@@ -796,6 +825,7 @@ async def export_overtime(
                     photo_count += 1
                 except Exception as e:
                     logger.warning(f"PDF photo skipped: {e}")
+            w_min, o_min = calc_split(d.get("start_time", ""), d.get("end_time", ""))
             data_rows.append([
                 Paragraph(str(i), cell_c),
                 Paragraph(str(d.get("employee_name", "")), cell),
@@ -803,14 +833,18 @@ async def export_overtime(
                 Paragraph(str(d.get("start_time", "")), cell_c),
                 Paragraph(str(d.get("end_time", "")), cell_c),
                 Paragraph(format_total(d.get("total_minutes", 0)), cell_c),
+                Paragraph(format_total(w_min), cell_c),
+                Paragraph(format_total(o_min), cell_c),
                 Paragraph(str(d.get("location", "") or "-"), cell),
                 Paragraph(str(d.get("note", "") or "-"), cell),
                 photo_cell,
             ])
         total_all = sum(d.get("total_minutes", 0) for d in docs)
-        data_rows.append(["", Paragraph("TOTAL", bold), "", "", "", Paragraph(format_total(total_all), bold_c), Paragraph(f"{len(docs)} rekap", bold_c), "", ""])
+        total_work = sum(calc_split(d.get("start_time", ""), d.get("end_time", ""))[0] for d in docs)
+        total_ot = sum(calc_split(d.get("start_time", ""), d.get("end_time", ""))[1] for d in docs)
+        data_rows.append(["", Paragraph("TOTAL", bold), "", "", "", Paragraph(format_total(total_all), bold_c), Paragraph(format_total(total_work), bold_c), Paragraph(format_total(total_ot), bold_c), Paragraph(f"{len(docs)} rekap", bold_c), "", ""])
 
-        table = Table(data_rows, colWidths=[0.9*cm, 3.2*cm, 2.4*cm, 1.5*cm, 1.5*cm, 2.6*cm, 3.6*cm, 6.2*cm, 2.6*cm], repeatRows=1)
+        table = Table(data_rows, colWidths=[0.9*cm, 3.0*cm, 2.2*cm, 1.4*cm, 1.4*cm, 2.3*cm, 2.2*cm, 2.2*cm, 3.2*cm, 4.3*cm, 2.5*cm], repeatRows=1)
         table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F172A")),
             ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),

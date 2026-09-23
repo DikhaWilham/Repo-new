@@ -108,7 +108,10 @@ export default function MonthlyRecap() {
                     <p className="text-xs text-slate-400">{e.count} rekap · {e.with_photo} ada foto</p>
                   </div>
                 </div>
-                <span className="text-sm font-semibold font-mono text-blue-700 dark:text-blue-400 shrink-0">{e.total_label}</span>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-semibold font-mono text-slate-800 dark:text-slate-100">{e.total_label}</p>
+                  <p className="text-xs font-semibold font-mono text-amber-600 dark:text-amber-400">Lembur {e.overtime_label}</p>
+                </div>
               </div>
             ))}
           </div>

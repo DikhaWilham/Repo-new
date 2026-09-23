@@ -235,7 +235,11 @@ export default function Dashboard() {
                         <td className="px-4 py-3 text-sm font-mono text-slate-700 dark:text-slate-200">{rec.start_time}</td>
                         <td className="px-4 py-3 text-sm font-mono text-slate-700 dark:text-slate-200">{rec.end_time}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="text-sm font-semibold font-mono text-blue-700 dark:text-blue-400">{rec.total_label}</span>
+                          <span className="text-sm font-semibold font-mono text-slate-800 dark:text-slate-100">{rec.total_label}</span>
+                          <div className="flex gap-1 mt-1">
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800" data-testid={`badge-work-${rec.id}`}>Kerja {rec.work_label}</span>
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800" data-testid={`badge-overtime-${rec.id}`}>Lembur {rec.overtime_label}</span>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 max-w-[160px]"><LocationCell rec={rec} /></td>
                         <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 max-w-[200px] truncate">{rec.note || "-"}</td>
@@ -279,6 +283,10 @@ export default function Dashboard() {
                     <div><span className="text-xs text-slate-400 block">Akhir</span><span className="font-mono text-slate-700 dark:text-slate-200">{rec.end_time}</span></div>
                     <div className="col-span-2"><span className="text-xs text-slate-400 block">Lokasi / Hari</span><LocationCell rec={rec} /></div>
                     <div className="col-span-2"><span className="text-xs text-slate-400 block">Keterangan</span><span className="text-slate-700 dark:text-slate-200">{rec.note || "-"}</span></div>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800">Kerja {rec.work_label}</span>
+                    <span className="text-xs font-semibold px-2 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800">Lembur {rec.overtime_label}</span>
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                     <PhotoCell rec={rec} />

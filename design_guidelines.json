@@ -1,0 +1,201 @@
+{
+  "project_title": "Aplikasi Rekap Lembur Karyawan (Overtime Management System)",
+  "language": "Bahasa Indonesia",
+  "archetype": "Architectural / Precision Utility (Performance Pro & Corporate Slate)",
+  "app_type": "hybrid_fullstack (Data-Heavy Internal HR/Operations Tool with Mobile & Desktop Responsive Views)",
+  "design_principles": [
+    "Precision Over Clutter: High density data presentation with clear visual hierarchy, subtle 1px slate borders, and explicit status badges.",
+    "Role-Based Clarity: Clear structural distinction between Admin controls (Add/Edit Employee, Add Overtime Entry, Master Edit, Full Export) and Employee controls (Self-Edit Start/End Time, Location, Note, Photo Upload).",
+    "Mobile-First Ergonomics: Touch-friendly touch targets (min 44px) for mobile phone access, bottom drawer/modal for fast employee field updates, and horizontal scrollable responsive tables with sticky employee name columns.",
+    "Indonesian Business Nuance: Native Indonesian terms ('Rekap Lembur', 'Jam Mulai', 'Jam Akhir', 'Total Lembur', 'Lokasi/Hari', 'Upload Foto Kondisi', 'Tambah Karyawan', 'Unduh Excel/CSV')."
+  ],
+  "theme": {
+    "default_mode": "light",
+    "supports_dark_mode": true,
+    "toggle_location": "Top Header Nav bar",
+    "note": "Header and navigation components must use solid or high-opacity backdrop surfaces (bg-slate-900/95 dark or bg-white/95 light with backdrop-blur-md). NEVER use completely transparent backgrounds for headers or dropdowns."
+  },
+  "typography": {
+    "heading_font": "Plus Jakarta Sans, sans-serif",
+    "body_font": "Inter, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "hierarchy": {
+      "h1_page_title": "text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100",
+      "h2_section_title": "text-lg sm:text-xl font-semibold tracking-tight text-slate-800 dark:text-slate-200",
+      "h3_card_title": "text-base font-semibold text-slate-900 dark:text-slate-100",
+      "body": "text-sm text-slate-600 dark:text-slate-300 leading-relaxed",
+      "table_header": "text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400",
+      "table_cell": "text-sm font-medium text-slate-700 dark:text-slate-200",
+      "stat_number": "text-2xl sm:text-3xl font-bold font-mono tracking-tight text-slate-900 dark:text-white"
+    }
+  },
+  "colors": {
+    "primary": {
+      "light": "#0F172A",
+      "dark": "#F8FAFC",
+      "brand_accent": "#2563EB",
+      "brand_hover": "#1D4ED8"
+    },
+    "status_badges": {
+      "completed": {
+        "bg": "bg-emerald-50 dark:bg-emerald-950/40",
+        "text": "text-emerald-700 dark:text-emerald-400",
+        "border": "border-emerald-200 dark:border-emerald-800"
+      },
+      "in_progress": {
+        "bg": "bg-amber-50 dark:bg-amber-950/40",
+        "text": "text-amber-700 dark:text-amber-400",
+        "border": "border-amber-200 dark:border-amber-800"
+      },
+      "pending_photo": {
+        "bg": "bg-sky-50 dark:bg-sky-950/40",
+        "text": "text-sky-700 dark:text-sky-400",
+        "border": "border-sky-200 dark:border-sky-800"
+      }
+    },
+    "neutrals": {
+      "bg_light": "#F8FAFC",
+      "bg_dark": "#090D16",
+      "surface_light": "#FFFFFF",
+      "surface_dark": "#131C2E",
+      "border_light": "#E2E8F0",
+      "border_dark": "#1E293B"
+    }
+  },
+  "layout_and_grid": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6",
+    "header_nav": "sticky top-0 z-40 w-full border-b bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-3 flex items-center justify-between",
+    "kpi_cards_grid": "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6",
+    "filter_bar": "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm",
+    "table_container": "bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden",
+    "mobile_card_view": "block sm:hidden space-y-3"
+  },
+  "key_features_and_flows": {
+    "authentication": {
+      "description": "Role selection (Admin / Karyawan) with login modal or page using email and password.",
+      "default_demo_accounts": [
+        { "role": "admin", "email": "admin@perusahaan.com", "password": "admin123", "label": "Admin HR" },
+        { "role": "employee", "email": "budi@perusahaan.com", "password": "budi123", "label": "Karyawan (Budi Santoso)" }
+      ]
+    },
+    "overtime_recap_table": {
+      "columns": [
+        "No",
+        "Nama Karyawan",
+        "Tanggal Lembur",
+        "Jam Mulai Lembur",
+        "Jam Akhir Lembur",
+        "Total Lembur (Otomatis)",
+        "Lokasi Hari / Tipe Hari",
+        "Keterangan Lembur",
+        "Foto Kondisi Lembur",
+        "Aksi"
+      ],
+      "auto_calculation_rule": "Calculate difference between Jam Mulai (e.g., 17:00) and Jam Akhir (e.g., 21:30). Display exact formatted string, e.g., '4 Jam 30 Menit' or '4.5 Jam'. Handle midnight edge cases gracefully."
+    },
+    "role_permissions": {
+      "admin": [
+        "Tambah / Edit / Hapus Master Karyawan (Sheet Karyawan)",
+        "Input Data Rekap Lembur Baru untuk Karyawan manapun",
+        "Edit seluruh kolom data lembur",
+        "Filter per rentang tanggal & per karyawan",
+        "Export data ke Excel / CSV"
+      ],
+      "employee": [
+        "Lihat daftar lembur milik sendiri (atau view-only untuk rekan)",
+        "Edit khusus jam mulai, jam akhir, lokasi hari, keterangan lembur, dan upload foto milik sendiri",
+        "Total lembur terhitung otomatis saat jam diubah"
+      ]
+    },
+    "photo_upload_feature": {
+      "description": "Allow image file upload (JPG/PNG/WEBP) or camera capture preview with modal light-box viewer.",
+      "placeholder_images": [
+        "https://images.unsplash.com/photo-1758520145175-aa3b593b81af?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "https://images.unsplash.com/photo-1639300505533-9921527d6a50?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "https://images.unsplash.com/photo-1758520145147-c30bc656f314?crop=entropy&cs=srgb&fm=jpg&q=85"
+      ]
+    },
+    "export_feature": {
+      "formats": ["Excel (.xlsx / CSV)", "Print / PDF Preview"],
+      "action": "Download sheet rekap lembur terfilter berdasarkan tanggal"
+    }
+  },
+  "component_structure": {
+    "file_extension": ".js",
+    "key_components": [
+      {
+        "name": "HeaderNav",
+        "purpose": "Logo Perusahaan, Role Indicator, User Avatar, Quick Switch Role (for demo), Dark Mode Toggle, and Logout button."
+      },
+      {
+        "name": "OvertimeStatsCards",
+        "purpose": "Summary stats (Total Jam Lembur Bulan Ini, Jumlah Karyawan Lembur, Rekap Hari Ini, Status Foto Verified)."
+      },
+      {
+        "name": "OvertimeFilterBar",
+        "purpose": "Filter tanggal (Single Date / Range), Filter Karyawan, Search Keterangan, and Export Buttons."
+      },
+      {
+        "name": "OvertimeTable",
+        "purpose": "Responsive desktop table with inline calculate badge, photo preview trigger, and edit button."
+      },
+      {
+        "name": "OvertimeMobileList",
+        "purpose": "Card-based view optimized for smartphones (HP view) with full tap targets and quick edit modal trigger."
+      },
+      {
+        "name": "EmployeeManagementModal",
+        "purpose": "Sheet / Modal for Admin to manage employee master data (NIP, Nama, Jabatan, Email, Password, Status Aktif)."
+      },
+      {
+        "name": "OvertimeEditModal",
+        "purpose": "Modal dialog for Employee / Admin to update Jam Mulai, Jam Akhir, Lokasi, Keterangan, and Upload Foto."
+      },
+      {
+        "name": "PhotoPreviewModal",
+        "purpose": "Full-size photo lightbox to inspect uploaded proof photo of overtime."
+      }
+    ]
+  },
+  "data_testid_strategy": {
+    "login_form": {
+      "email_input": "input-email-login",
+      "password_input": "input-password-login",
+      "role_select": "select-role-login",
+      "submit_btn": "btn-submit-login"
+    },
+    "header": {
+      "role_badge": "badge-user-role",
+      "switch_role_btn": "btn-switch-role-demo",
+      "employee_sheet_btn": "btn-open-employee-sheet",
+      "add_overtime_btn": "btn-open-add-overtime"
+    },
+    "table_and_list": {
+      "date_filter": "input-date-filter",
+      "search_input": "input-search-overtime",
+      "export_excel_btn": "btn-export-excel",
+      "export_csv_btn": "btn-export-csv",
+      "table_row": "tr-overtime-row-{id}",
+      "edit_row_btn": "btn-edit-overtime-{id}",
+      "photo_thumbnail": "img-photo-proof-{id}"
+    },
+    "edit_modal": {
+      "start_time": "input-edit-start-time",
+      "end_time": "input-edit-end-time",
+      "location": "input-edit-location",
+      "note": "input-edit-note",
+      "file_upload": "input-file-photo",
+      "calculated_total": "badge-calculated-total-time",
+      "save_btn": "btn-save-overtime"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Ensure all text throughout the application is in clear, natural Bahasa Indonesia.",
+    "Implement accurate automatic calculation of total overtime hours and minutes when Jam Mulai or Jam Akhir changes.",
+    "Support file uploads with live thumbnail image preview and lightbox expansion.",
+    "Build both desktop table view and a mobile-optimized card layout for HP users.",
+    "Ensure Admin can manage employee master list ('Sheet Edit Karyawan') and edit any field, while Employee can edit their designated fields.",
+    "Use proper data-testid attributes on all key interactive elements as mapped above.",
+    "Use solid/glass-backed headers (backdrop-blur-md with semi-opaque background) to avoid unreadable text overlay."
+  ]
+}

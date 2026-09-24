@@ -257,6 +257,57 @@ def test_admin_create_overtime_manual_and_calc(admin, temp_employee):
     admin.delete(f"{API}/overtime/{ot2}", timeout=30)
 
 
+@pytest.mark.parametrize("start,end,exp_work,exp_ot,exp_work_lbl,exp_ot_lbl", [
+    ("08:30", "16:30", 480, 0, "8 Jam", "0 Menit"),
+    ("07:00", "18:00", 480, 180, "8 Jam", "3 Jam"),
+    ("17:00", "21:30", 0, 270, "0 Menit", "4 Jam 30 Menit"),
+    ("22:00", "02:00", 0, 240, "0 Menit", "4 Jam"),
+])
+def test_calc_split_via_api(admin, temp_employee, start, end, exp_work, exp_ot, exp_work_lbl, exp_ot_lbl):
+    """Verify calc_split: kerja/lembur split for boundary cases including midnight crossing."""
+    r = admin.post(f"{API}/overtime", json={
+        "employee_id": temp_employee["id"], "date": "2026-09-01",
+        "start_time": start, "end_time": end,
+    }, timeout=30)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["work_minutes"] == exp_work, f"work_min for {start}-{end}"
+    assert body["overtime_minutes"] == exp_ot, f"ot_min for {start}-{end}"
+    assert body["work_label"] == exp_work_lbl
+    assert body["overtime_label"] == exp_ot_lbl
+    admin.delete(f"{API}/overtime/{body['id']}", timeout=30)
+
+
+def test_monthly_recap_overtime_label(admin, temp_employee):
+    """monthly-recap harus menyertakan overtime_label per karyawan + grand_overtime_label."""
+    # create 07:00-18:00 (kerja 8 Jam, lembur 3 Jam) di bulan uji
+    r = admin.post(f"{API}/overtime", json={
+        "employee_id": temp_employee["id"], "date": "2026-09-20",
+        "start_time": "07:00", "end_time": "18:00", "note": "Uji recap",
+    }, timeout=30)
+    assert r.status_code == 200, r.text
+    ot_id = r.json()["id"]
+    try:
+        r = admin.get(f"{API}/overtime/monthly-recap", params={"month": "2026-09"}, timeout=30)
+        assert r.status_code == 200
+        body = r.json()
+        assert "grand_overtime_label" in body
+        # ensure our employee row present with overtime_label
+        rows = [e for e in body["employees"] if e["employee_id"] == temp_employee["id"]]
+        assert rows and "overtime_label" in rows[0]
+    finally:
+        admin.delete(f"{API}/overtime/{ot_id}", timeout=30)
+
+
+def test_export_csv_has_new_columns(admin):
+    r = admin.get(f"{API}/overtime/export", params={"fmt": "csv"}, timeout=60)
+    assert r.status_code == 200
+    text = r.text
+    assert "Total Waktu" in text
+    assert "Jam Kerja (08:30-16:30)" in text
+    assert "Lembur" in text
+
+
 def test_employee_cannot_create_overtime(emp_session, temp_employee):
     r = emp_session.post(f"{API}/overtime", json={
         "employee_id": temp_employee["id"], "date": "2026-06-15",
